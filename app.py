@@ -26,6 +26,10 @@ app.config['AVATAR_FOLDER'] = AVATAR_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(AVATAR_FOLDER, exist_ok=True)
 
+# تهيئة قاعدة البيانات عند بدء التطبيق (يعمل مع gunicorn على Render)
+init_db()
+seed_default_users(generate_password_hash)
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
