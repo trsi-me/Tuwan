@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}تسجيل الدخول - منصة تعاون{% endblock %}
+
+{% block content %}
+<div class="login-page">
+    <div class="hero">
+        <img src="{{ url_for('serve_assets', filename='images/Logo.png') }}" alt="منصة تعاون" class="hero-logo">
+        <h1>تسجيل الدخول</h1>
+    </div>
+    <div class="form-section container">
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="form-group">
+                <label for="email">البريد الإلكتروني</label>
+                <input type="email" id="email" name="email" required placeholder="example@email.com">
+            </div>
+            <div class="form-group">
+                <label for="password">كلمة المرور</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">تسجيل الدخول</button>
+            </div>
+        </form>
+        <div class="form-footer">
+            <p class="demo-accounts">حسابات تجريبية (كلمة المرور: 123456):</p>
+            <p class="demo-accounts-list">طالب: student@tawun.com | جهة: company@tawun.com | مشرف: supervisor@tawun.com</p>
+            <p>ليس لديك حساب؟ اختر نوع الحساب وأنشئ حساباً جديداً:</p>
+            <div class="register-options">
+                <a href="{{ url_for('register_student') }}" class="register-option">طالب</a>
+                <a href="{{ url_for('register_company') }}" class="register-option">جهة حكومية</a>
+                <a href="{{ url_for('register_supervisor') }}" class="register-option">مشرف أكاديمي</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

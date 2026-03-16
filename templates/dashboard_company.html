@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة الجهة - منصة تعاون{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <h1>لوحة الجهة - {{ company.name }}</h1>
+    </div>
+
+    <div class="dashboard-section">
+        <h2>المتقدمون الطلاب</h2>
+        {% if male_applicants %}
+        <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>البريد</th>
+                    <th>الجوال</th>
+                    <th>التخصص</th>
+                    <th>السيرة الذاتية</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in male_applicants %}
+                <tr>
+                    <td>{{ app.name }}</td>
+                    <td>{{ app.email }}</td>
+                    <td>{{ app.phone or '-' }}</td>
+                    <td>{{ app.major or '-' }}</td>
+                    <td>
+                        {% if app.cv_file %}
+                        <a href="{{ url_for('download_cv', filename=app.cv_file) }}" class="cv-link">تحميل</a>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <form method="POST" action="{{ url_for('accept_application', app_id=app.id) }}" style="display:inline">
+                                <button type="submit" class="btn btn-success">قبول</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('reject_application', app_id=app.id) }}" style="display:inline">
+                                <button type="submit" class="btn btn-danger">رفض</button>
+                            </form>
+                            <a href="mailto:{{ app.email }}" class="btn btn-secondary">التواصل</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>لا يوجد متقدمون ذكور</p>
+        {% endif %}
+    </div>
+
+    <div class="dashboard-section">
+        <h2>المتقدمات الطالبات</h2>
+        {% if female_applicants %}
+        <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>البريد</th>
+                    <th>الجوال</th>
+                    <th>التخصص</th>
+                    <th>السيرة الذاتية</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in female_applicants %}
+                <tr>
+                    <td>{{ app.name }}</td>
+                    <td>{{ app.email }}</td>
+                    <td>{{ app.phone or '-' }}</td>
+                    <td>{{ app.major or '-' }}</td>
+                    <td>
+                        {% if app.cv_file %}
+                        <a href="{{ url_for('download_cv', filename=app.cv_file) }}" class="cv-link">تحميل</a>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <form method="POST" action="{{ url_for('accept_application', app_id=app.id) }}" style="display:inline">
+                                <button type="submit" class="btn btn-success">قبول</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('reject_application', app_id=app.id) }}" style="display:inline">
+                                <button type="submit" class="btn btn-danger">رفض</button>
+                            </form>
+                            <a href="mailto:{{ app.email }}" class="btn btn-secondary">التواصل</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p>لا يوجد متقدمات إناث</p>
+        {% endif %}
+    </div>
+
+    <div class="dashboard-section">
+        <h2>المقبولون</h2>
+        {% if accepted %}
+        <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>البريد</th>
+                    <th>الجوال</th>
+                    <th>التخصص</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in accepted %}
+                <tr>
+                    <td>{{ app.name }}</td>
+                    <td>{{ app.email }}</td>
+                    <td>{{ app.phone or '-' }}</td>
+                    <td>{{ app.major or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p>لا يوجد مقبولون</p>
+        {% endif %}
+    </div>
+
+    <div class="dashboard-section">
+        <h2>المرفوضون</h2>
+        {% if rejected %}
+        <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>البريد</th>
+                    <th>التخصص</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in rejected %}
+                <tr>
+                    <td>{{ app.name }}</td>
+                    <td>{{ app.email }}</td>
+                    <td>{{ app.major or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p>لا يوجد مرفوضون</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

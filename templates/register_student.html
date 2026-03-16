@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}تسجيل طالب - منصة تعاون{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <img src="{{ url_for('serve_assets', filename='images/Logo.png') }}" alt="منصة تعاون" class="hero-logo">
+    <h1>إنشاء حساب طالب</h1>
+</div>
+<div class="form-section container">
+    <form method="POST" action="{{ url_for('register_student') }}" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="name">الاسم *</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        <div class="form-group">
+            <label for="email">البريد الإلكتروني *</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+            <label for="password">كلمة المرور *</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div class="form-group">
+            <label for="phone">رقم الجوال</label>
+            <input type="tel" id="phone" name="phone" placeholder="05xxxxxxxx">
+        </div>
+        <div class="form-group">
+            <label for="department">القسم</label>
+            <input type="text" id="department" name="department" placeholder="مثال: علوم الحاسب">
+        </div>
+        <div class="form-group">
+            <label for="major">التخصص</label>
+            <input type="text" id="major" name="major" placeholder="مثال: هندسة البرمجيات">
+        </div>
+        <div class="form-group">
+            <label for="age">العمر</label>
+            <input type="number" id="age" name="age" min="18" max="60" placeholder="20">
+        </div>
+        <div class="form-group">
+            <label for="gender">الجنس</label>
+            <select id="gender" name="gender">
+                <option value="">-- اختر --</option>
+                <option value="male">ذكر</option>
+                <option value="female">أنثى</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="skills">المهارات</label>
+            <textarea id="skills" name="skills" placeholder="اكتب مهاراتك مفصولة بفاصلة"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="cv_file">رفع السيرة الذاتية</label>
+            <input type="file" id="cv_file" name="cv_file" accept=".pdf,.doc,.docx">
+            <small>الملفات المسموحة: PDF, DOC, DOCX - الحد الأقصى 5 ميجابايت</small>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">إنشاء الحساب</button>
+        </div>
+    </form>
+    <div class="form-footer">
+        <a href="{{ url_for('login') }}">لديك حساب؟ سجّل الدخول</a>
+    </div>
+</div>
+{% endblock %}

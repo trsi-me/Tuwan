@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة المشرف - منصة تعاون{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <h1>لوحة المشرف الأكاديمي</h1>
+    </div>
+
+    <div class="dashboard-section">
+        <h2>الإشراف على الجهات</h2>
+        {% if companies %}
+        <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>اسم الجهة</th>
+                    <th>القسم</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in companies %}
+                <tr>
+                    <td>{{ c.name }}</td>
+                    <td>{{ c.department or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p>لا توجد جهات مسجلة</p>
+        {% endif %}
+    </div>
+
+    <div class="dashboard-section">
+        <h2>الإشراف على المتدربين</h2>
+        {% if students %}
+        <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>القسم</th>
+                    <th>التخصص</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in students %}
+                <tr>
+                    <td>{{ s.name }}</td>
+                    <td>{{ s.department or '-' }}</td>
+                    <td>{{ s.major or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p>لا يوجد متدربون مسجلون</p>
+        {% endif %}
+    </div>
+
+    <div class="dashboard-section">
+        <h2>الطلبات - المتقدمون</h2>
+        {% if pending_apps %}
+        <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>الطالب</th>
+                    <th>الجهة</th>
+                    <th>الحالة</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in pending_apps %}
+                <tr>
+                    <td>{{ app.student_name }}</td>
+                    <td>{{ app.company_name }}</td>
+                    <td><span class="status-badge status-pending">قيد المراجعة</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p>لا توجد طلبات قيد المراجعة</p>
+        {% endif %}
+    </div>
+
+    <div class="dashboard-section">
+        <h2>المقبولون</h2>
+        {% if accepted_apps %}
+        <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>الطالب</th>
+                    <th>الجهة</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in accepted_apps %}
+                <tr>
+                    <td>{{ app.student_name }}</td>
+                    <td>{{ app.company_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p>لا يوجد مقبولون</p>
+        {% endif %}
+    </div>
+
+    <div class="dashboard-section">
+        <h2>المرفوضون</h2>
+        {% if rejected_apps %}
+        <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>الطالب</th>
+                    <th>الجهة</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in rejected_apps %}
+                <tr>
+                    <td>{{ app.student_name }}</td>
+                    <td>{{ app.company_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p>لا يوجد مرفوضون</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

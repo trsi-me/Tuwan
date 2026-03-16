@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}منصة تعاون - الرئيسية{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <img src="{{ url_for('serve_assets', filename='images/Logo.png') }}" alt="منصة تعاون" class="hero-logo">
+    <h1>منصة تعاون لتنظيم التدريب التعاوني</h1>
+    <p>منصة جامعية تربط الطلاب بالجهات الحكومية والخاصة لتنظيم برامج التدريب التعاوني وتسهيل عملية التنسيق والإشراف الأكاديمي.</p>
+    <div class="hero-buttons">
+        <a href="{{ url_for('login') }}" class="btn btn-primary">تسجيل الدخول</a>
+        <a href="{{ url_for('login') }}#register" class="btn btn-secondary">إنشاء حساب</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}منصة تعاون{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="header">
+        <div class="header-inner container">
+            <button class="nav-toggle" id="navToggle" type="button" aria-label="فتح القائمة">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <a href="{{ url_for('index') }}" class="logo-wrap">
+                <img src="{{ url_for('serve_assets', filename='images/Logo.png') }}" alt="منصة تعاون" class="logo">
+            </a>
+            <span class="header-spacer"></span>
+            <nav class="nav-links" id="navLinks">
+                <a href="{{ url_for('index') }}">الرئيسية</a>
+                <a href="{{ url_for('about') }}">النبذة</a>
+                {% if session.get('user_id') %}
+                    {% if current_user and current_user.avatar_file %}
+                    <a href="{{ url_for('profile') }}" class="nav-avatar-link">
+                        <img src="{{ url_for('serve_avatar', filename=current_user.avatar_file) }}" alt="الملف الشخصي" class="nav-avatar">
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('dashboard') }}">لوحة التحكم</a>
+                    <a href="{{ url_for('profile') }}">الملف الشخصي</a>
+                    <a href="{{ url_for('logout') }}">تسجيل الخروج</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}">تسجيل الدخول</a>
+                    <a href="{{ url_for('login') }}" class="btn btn-primary">إنشاء حساب</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="container alerts-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

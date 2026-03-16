@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}تسجيل مشرف أكاديمي - منصة تعاون{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <img src="{{ url_for('serve_assets', filename='images/Logo.png') }}" alt="منصة تعاون" class="hero-logo">
+    <h1>إنشاء حساب مشرف أكاديمي</h1>
+</div>
+<div class="form-section container">
+    <form method="POST" action="{{ url_for('register_supervisor') }}">
+        <div class="form-group">
+            <label for="name">الاسم *</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        <div class="form-group">
+            <label for="email">البريد الإلكتروني *</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+            <label for="password">كلمة المرور *</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div class="form-group">
+            <label for="department">القسم</label>
+            <input type="text" id="department" name="department" placeholder="القسم الأكاديمي">
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">إنشاء الحساب</button>
+        </div>
+    </form>
+    <div class="form-footer">
+        <a href="{{ url_for('login') }}">لديك حساب؟ سجّل الدخول</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}تعديل البيانات - منصة تعاون{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <h1>تعديل البيانات</h1>
+    </div>
+
+    <div class="form-section container">
+        <form method="POST" action="{{ url_for('edit_profile') }}" enctype="multipart/form-data" class="edit-form">
+            <div class="form-group avatar-upload-group">
+                <label>الصورة الشخصية</label>
+                {% if user.avatar_file %}
+                <div class="avatar-preview">
+                    <img src="{{ url_for('serve_avatar', filename=user.avatar_file) }}" alt="الصورة الحالية" class="avatar-img">
+                </div>
+                {% endif %}
+                <input type="file" id="avatar_file" name="avatar_file" accept=".jpg,.jpeg,.png,.gif,.webp">
+                <small>الملفات المسموحة: JPG, PNG, GIF, WEBP - الحد الأقصى 2 ميجابايت</small>
+            </div>
+            <div class="form-group">
+                <label for="name">الاسم</label>
+                <input type="text" id="name" name="name" value="{{ user.name }}" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">رقم الجوال</label>
+                <input type="tel" id="phone" name="phone" value="{{ user.phone or '' }}" placeholder="05xxxxxxxx">
+            </div>
+            <div class="form-group">
+                <label for="department">القسم</label>
+                <input type="text" id="department" name="department" value="{{ user.department or '' }}">
+            </div>
+            {% if session.get('role') == 'student' and extra %}
+            <div class="form-group">
+                <label for="skills">المهارات</label>
+                <textarea id="skills" name="skills" placeholder="اكتب مهاراتك مفصولة بفاصلة">{{ extra.skills or '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="cv_file">رفع السيرة الذاتية</label>
+                <input type="file" id="cv_file" name="cv_file" accept=".pdf,.doc,.docx">
+                {% if extra.cv_file %}
+                <small>السيرة الحالية: <a href="{{ url_for('download_cv', filename=extra.cv_file) }}" class="cv-link">تحميل</a></small>
+                {% else %}
+                <small>الملفات المسموحة: PDF, DOC, DOCX - الحد الأقصى 5 ميجابايت</small>
+                {% endif %}
+            </div>
+            {% endif %}
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
