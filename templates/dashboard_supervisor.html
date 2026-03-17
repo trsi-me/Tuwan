@@ -16,6 +16,7 @@
             <thead>
                 <tr>
                     <th>اسم الجهة</th>
+                    <th>الوزارة</th>
                     <th>القسم</th>
                 </tr>
             </thead>
@@ -23,6 +24,7 @@
                 {% for c in companies %}
                 <tr>
                     <td>{{ c.name }}</td>
+                    <td>{{ c.ministry or '-' }}</td>
                     <td>{{ c.department or '-' }}</td>
                 </tr>
                 {% endfor %}

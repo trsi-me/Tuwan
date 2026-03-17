@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}تسجيل جهة حكومية - منصة تعاون{% endblock %}
+{% block title %}تسجيل شركة/جهة حكومية - منصة تعاون{% endblock %}
 
 {% block content %}
 <div class="hero">
     <img src="{{ url_for('serve_assets', filename='images/Logo.png') }}" alt="منصة تعاون" class="hero-logo">
-    <h1>إنشاء حساب جهة حكومية</h1>
+    <h1>إنشاء حساب شركة/جهة حكومية</h1>
 </div>
 <div class="form-section container">
     <form method="POST" action="{{ url_for('register_company') }}">
         <div class="form-group">
-            <label for="name">اسم الجهة *</label>
-            <input type="text" id="name" name="name" required placeholder="اسم المؤسسة أو الجهة">
+            <label for="name">اسم الشركة/الجهة *</label>
+            <input type="text" id="name" name="name" required placeholder="اسم المؤسسة أو الشركة أو الجهة">
         </div>
         <div class="form-group">
             <label for="email">البريد الإلكتروني *</label>
@@ -30,16 +30,25 @@
             <input type="text" id="department" name="department" placeholder="القسم أو التخصص المطلوب للمتدربين">
         </div>
         <div class="form-group">
-            <label for="organization_type">نوع الجهة</label>
+            <label for="organization_type">نوع الشركة/الجهة</label>
             <select id="organization_type" name="organization_type">
                 <option value="">-- اختر --</option>
                 <option value="government">حكومية</option>
                 <option value="private">خاصة</option>
             </select>
         </div>
-        <div class="form-group">
-            <label for="organization_category">تصنيف الجهة</label>
-            <input type="text" id="organization_category" name="organization_category" placeholder="مثال: وزارة، شركة، مؤسسة">
+        <div class="form-group" id="ministry-group" style="display:none">
+            <label for="ministry">الوزارة التابعة لها *</label>
+            <select id="ministry" name="ministry">
+                <option value="">-- اختر الوزارة --</option>
+                {% for m in ministries %}
+                <option value="{{ m }}">{{ m }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group" id="category-group">
+            <label for="organization_category">تصنيف الشركة/الجهة</label>
+            <input type="text" id="organization_category" name="organization_category" placeholder="مثال: شركة، مؤسسة (للجهات الخاصة)">
         </div>
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">إنشاء الحساب</button>
@@ -49,4 +58,19 @@
         <a href="{{ url_for('login') }}">لديك حساب؟ سجّل الدخول</a>
     </div>
 </div>
+<script>
+document.getElementById('organization_type').addEventListener('change', function() {
+    var ministryGroup = document.getElementById('ministry-group');
+    var categoryGroup = document.getElementById('category-group');
+    if (this.value === 'government') {
+        ministryGroup.style.display = 'block';
+        ministryGroup.querySelector('#ministry').required = true;
+        categoryGroup.querySelector('input').placeholder = 'اسم الجهة أو الإدارة';
+    } else {
+        ministryGroup.style.display = 'none';
+        ministryGroup.querySelector('#ministry').required = false;
+        categoryGroup.querySelector('input').placeholder = 'مثال: شركة، مؤسسة (للجهات الخاصة)';
+    }
+});
+</script>
 {% endblock %}

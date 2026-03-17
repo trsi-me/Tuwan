@@ -15,7 +15,9 @@ from config import (
     MAX_CONTENT_LENGTH, ASSETS_DIR, AVATAR_FOLDER,
     ALLOWED_AVATAR_EXTENSIONS
 )
+from constants import SAUDI_MINISTRIES
 from database import get_db_connection, init_db, seed_default_users
+from ai_matching import match_student_to_companies_ai
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = SECRET_KEY
@@ -26,7 +28,6 @@ app.config['AVATAR_FOLDER'] = AVATAR_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(AVATAR_FOLDER, exist_ok=True)
 
-# تهيئة قاعدة البيانات عند بدء التطبيق (يعمل مع gunicorn على Render)
 init_db()
 seed_default_users(generate_password_hash)
 
@@ -197,17 +198,21 @@ def register_company():
         department = request.form.get('department', '').strip()
         organization_type = request.form.get('organization_type', '').strip()
         organization_category = request.form.get('organization_category', '').strip()
+        ministry = request.form.get('ministry', '').strip() if organization_type == 'government' else ''
         
         if not all([name, email, password]):
             flash('يرجى تعبئة الحقول الإلزامية', 'error')
-            return render_template('register_company.html')
+            return render_template('register_company.html', ministries=SAUDI_MINISTRIES)
+        if organization_type == 'government' and not ministry:
+            flash('يرجى اختيار الوزارة التابعة لها', 'error')
+            return render_template('register_company.html', ministries=SAUDI_MINISTRIES)
         
         conn = get_db_connection()
         existing = conn.execute('SELECT id FROM users WHERE email = ?', (email,)).fetchone()
         if existing:
             conn.close()
             flash('البريد الإلكتروني مسجل مسبقاً', 'error')
-            return render_template('register_company.html')
+            return render_template('register_company.html', ministries=SAUDI_MINISTRIES)
         
         password_hash = generate_password_hash(password)
         cursor = conn.execute(
@@ -216,8 +221,8 @@ def register_company():
         )
         user_id = cursor.lastrowid
         conn.execute(
-            'INSERT INTO companies (user_id, organization_type, organization_category) VALUES (?, ?, ?)',
-            (user_id, organization_type, organization_category)
+            'INSERT INTO companies (user_id, organization_type, organization_category, ministry) VALUES (?, ?, ?, ?)',
+            (user_id, organization_type, organization_category or name, ministry)
         )
         conn.commit()
         conn.close()
@@ -225,7 +230,7 @@ def register_company():
         flash('تم إنشاء الحساب بنجاح. يمكنك تسجيل الدخول الآن', 'success')
         return redirect(url_for('login'))
     
-    return render_template('register_company.html')
+    return render_template('register_company.html', ministries=SAUDI_MINISTRIES)
 
 @app.route('/register/supervisor', methods=['GET', 'POST'])
 def register_supervisor():
@@ -293,12 +298,14 @@ def dashboard_student():
         ORDER BY a.created_at DESC
     ''', (session['user_id'],)).fetchall()
     
-    companies = conn.execute('''
-        SELECT c.id, u.name, u.department, c.organization_type
+    companies_raw = conn.execute('''
+        SELECT c.id, u.name, u.department, c.organization_type, c.ministry, c.organization_category
         FROM companies c
         JOIN users u ON c.user_id = u.id
     ''').fetchall()
     
+    companies_all = [dict(c) for c in companies_raw]
+    suitable_companies = match_student_to_companies_ai(student_data, companies_all)
     applied_company_ids = [a['company_id'] for a in applications]
     
     conn.close()
@@ -306,7 +313,7 @@ def dashboard_student():
     return render_template('dashboard_student.html',
         user=user_data, student=student_data,
         applications=[dict(a) for a in applications],
-        companies=[dict(c) for c in companies],
+        companies=suitable_companies,
         applied_company_ids=applied_company_ids)
 
 @app.route('/dashboard/company')
@@ -346,6 +353,15 @@ def dashboard_company():
     male_applicants = [dict(a) for a in applicants if a['gender'] == 'male']
     female_applicants = [dict(a) for a in applicants if a['gender'] == 'female']
     
+    stats = {
+        'total_applicants': len(applicants) + len(accepted) + len(rejected),
+        'pending': len(applicants),
+        'accepted': len(accepted),
+        'rejected': len(rejected),
+        'male_count': len(male_applicants) + sum(1 for a in accepted if a['gender'] == 'male') + sum(1 for a in rejected if a['gender'] == 'male'),
+        'female_count': len(female_applicants) + sum(1 for a in accepted if a['gender'] == 'female') + sum(1 for a in rejected if a['gender'] == 'female'),
+    }
+    
     conn.close()
     
     return render_template('dashboard_company.html',
@@ -353,7 +369,8 @@ def dashboard_company():
         male_applicants=male_applicants,
         female_applicants=female_applicants,
         accepted=[dict(a) for a in accepted],
-        rejected=[dict(a) for a in rejected])
+        rejected=[dict(a) for a in rejected],
+        stats=stats)
 
 @app.route('/dashboard/supervisor')
 @login_required(role='supervisor')
@@ -485,12 +502,34 @@ def submit_application():
     
     conn = get_db_connection()
     student = conn.execute(
-        'SELECT id FROM students WHERE user_id = ?', (session['user_id'],)
+        'SELECT id, cv_file FROM students WHERE user_id = ?', (session['user_id'],)
     ).fetchone()
     
     if not student:
         conn.close()
         flash('خطأ في البيانات', 'error')
+        return redirect(url_for('dashboard_student'))
+    
+    if not student['cv_file']:
+        conn.close()
+        flash('يجب رفع السيرة الذاتية أولاً من صفحة تعديل البيانات', 'error')
+        return redirect(url_for('dashboard_student'))
+    
+    company = conn.execute(
+        'SELECT c.id, u.name, u.department, c.ministry, c.organization_category FROM companies c JOIN users u ON c.user_id = u.id WHERE c.id = ?',
+        (company_id,)
+    ).fetchone()
+    
+    if not company:
+        conn.close()
+        flash('الجهة غير موجودة', 'error')
+        return redirect(url_for('dashboard_student'))
+    
+    student_data = get_student_data(session['user_id'])
+    suitable = match_student_to_companies_ai(student_data, [dict(company)])
+    if not suitable:
+        conn.close()
+        flash('هذه الجهة غير مناسبة لتخصصك ومهاراتك', 'error')
         return redirect(url_for('dashboard_student'))
     
     existing = conn.execute(
@@ -510,7 +549,7 @@ def submit_application():
     conn.commit()
     conn.close()
     
-    flash('تم إرسال الطلب بنجاح', 'success')
+    flash('تم إرسال الطلب والسيرة الذاتية بنجاح للجهة المناسبة', 'success')
     return redirect(url_for('dashboard_student'))
 
 @app.route('/application/<int:app_id>/accept', methods=['POST'])
@@ -552,7 +591,27 @@ def reject_application(app_id):
 @app.route('/uploads/cv/<filename>')
 @login_required()
 def download_cv(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+    conn = get_db_connection()
+    if session.get('role') == 'student':
+        student = conn.execute(
+            'SELECT cv_file FROM students WHERE user_id = ?', (session['user_id'],)
+        ).fetchone()
+        if student and student['cv_file'] == filename:
+            conn.close()
+            return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+    elif session.get('role') == 'company':
+        company = conn.execute('SELECT id FROM companies WHERE user_id = ?', (session['user_id'],)).fetchone()
+        if company:
+            app_row = conn.execute(
+                'SELECT a.id FROM applications a JOIN students s ON a.student_id = s.id WHERE s.cv_file = ? AND a.company_id = ?',
+                (filename, company['id'])
+            ).fetchone()
+            if app_row:
+                conn.close()
+                return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+    conn.close()
+    flash('غير مصرح بتحميل هذا الملف', 'error')
+    return redirect(url_for('dashboard'))
 
 @app.route('/about')
 def about():

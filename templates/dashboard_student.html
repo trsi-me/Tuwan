@@ -59,16 +59,21 @@
     </div>
 
     <div class="dashboard-section">
-        <h2>التقديم للجهات</h2>
-        <p>يمكنك التقديم للجهات المناسبة.</p>
+        <h2>التقديم للجهات المناسبة</h2>
+        <p>يتم عرض الجهات المناسبة لتخصصك ومهاراتك فقط. يجب رفع السيرة الذاتية قبل التقديم.</p>
+        {% if not student or not student.cv_file %}
+        <div class="alert alert-error">يرجى رفع السيرة الذاتية من صفحة تعديل البيانات قبل التقديم لأي جهة.</div>
+        {% endif %}
         {% if companies %}
         <div class="table-wrapper">
         <table class="data-table">
             <thead>
                 <tr>
                     <th>اسم الجهة</th>
+                    <th>الوزارة/التصنيف</th>
                     <th>القسم</th>
                     <th>نوع الجهة</th>
+                    <th>نسبة الملاءمة</th>
                     <th>إجراء</th>
                 </tr>
             </thead>
@@ -76,16 +81,22 @@
                 {% for comp in companies %}
                 <tr>
                     <td>{{ comp.name }}</td>
+                    <td>{{ comp.ministry or comp.organization_category or '-' }}</td>
                     <td>{{ comp.department or '-' }}</td>
                     <td>{% if comp.organization_type == 'government' %}حكومية{% elif comp.organization_type == 'private' %}خاصة{% else %}-{% endif %}</td>
                     <td>
+                        <span title="{{ comp.match_reason or '' }}">{{ comp.match_score|default(0) }}%</span>
+                    </td>
+                    <td>
                         {% if comp.id in applied_company_ids %}
                         <span class="status-badge status-pending">تم التقديم</span>
-                        {% else %}
+                        {% elif student and student.cv_file %}
                         <form method="POST" action="{{ url_for('submit_application') }}" style="display:inline">
                             <input type="hidden" name="company_id" value="{{ comp.id }}">
-                            <button type="submit" class="btn btn-primary">تقديم طلب</button>
+                            <button type="submit" class="btn btn-primary">تقديم طلب + السيرة</button>
                         </form>
+                        {% else %}
+                        <span class="status-badge">يجب رفع السيرة أولاً</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -94,7 +105,7 @@
         </table>
         </div>
         {% else %}
-        <p>لا توجد جهات متاحة حالياً</p>
+        <p>لا توجد جهات مناسبة لتخصصك ومهاراتك حالياً. قم بتحديث بياناتك أو انتظر إضافة جهات جديدة.</p>
         {% endif %}
     </div>
 

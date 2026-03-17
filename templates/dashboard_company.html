@@ -1,11 +1,38 @@
 {% extends "base.html" %}
 
-{% block title %}لوحة الجهة - منصة تعاون{% endblock %}
+{% block title %}لوحة الشركة/الجهة - منصة تعاون{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="dashboard-header">
-        <h1>لوحة الجهة - {{ company.name }}</h1>
+        <h1>لوحة الشركة/الجهة - {{ company.name }}</h1>
+    </div>
+
+    <div class="stats-cards">
+        <div class="stat-card">
+            <span class="stat-number">{{ stats.total_applicants }}</span>
+            <span class="stat-label">إجمالي المتقدمين</span>
+        </div>
+        <div class="stat-card stat-pending">
+            <span class="stat-number">{{ stats.pending }}</span>
+            <span class="stat-label">قيد المراجعة</span>
+        </div>
+        <div class="stat-card stat-accepted">
+            <span class="stat-number">{{ stats.accepted }}</span>
+            <span class="stat-label">المقبولون</span>
+        </div>
+        <div class="stat-card stat-rejected">
+            <span class="stat-number">{{ stats.rejected }}</span>
+            <span class="stat-label">المرفوضون</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">{{ stats.male_count }}</span>
+            <span class="stat-label">ذكور</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">{{ stats.female_count }}</span>
+            <span class="stat-label">إناث</span>
+        </div>
     </div>
 
     <div class="dashboard-section">

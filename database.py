@@ -16,7 +16,6 @@ def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # جدول المستخدمين
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,7 +29,6 @@ def init_db():
         )
     ''')
     
-    # جدول الطلاب
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS students (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,18 +42,21 @@ def init_db():
         )
     ''')
     
-    # جدول الجهات
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS companies (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL UNIQUE,
             organization_type TEXT,
             organization_category TEXT,
+            ministry TEXT,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
     ''')
+    try:
+        cursor.execute('ALTER TABLE companies ADD COLUMN ministry TEXT')
+    except sqlite3.OperationalError:
+        pass
     
-    # جدول المشرفين
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS supervisors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -65,7 +66,6 @@ def init_db():
         )
     ''')
     
-    # جدول الطلبات
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS applications (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -101,15 +101,25 @@ def seed_default_users(password_hash_fn):
             (user_id, 'male', 'هندسة البرمجيات', 22, 'Python, JavaScript, SQL')
         )
     
-    if not cursor.execute('SELECT id FROM users WHERE email = ?', ('company@tawun.com',)).fetchone():
+    company_user = cursor.execute('SELECT id FROM users WHERE email = ?', ('company@tawun.com',)).fetchone()
+    if not company_user:
         cursor.execute(
             'INSERT INTO users (name, email, password, phone, role, department) VALUES (?, ?, ?, ?, ?, ?)',
-            ('شركة التدريب', 'company@tawun.com', default_password, '0507654321', 'company', 'علوم الحاسب')
+            ('شركة/جهة حكومية التدريبية', 'company@tawun.com', default_password, '0507654321', 'company', 'علوم الحاسب')
         )
         user_id = cursor.lastrowid
         cursor.execute(
-            'INSERT INTO companies (user_id, organization_type, organization_category) VALUES (?, ?, ?)',
-            (user_id, 'government', 'وزارة')
+            'INSERT INTO companies (user_id, organization_type, organization_category, ministry) VALUES (?, ?, ?, ?)',
+            (user_id, 'government', 'شركة/جهة حكومية', 'وزارة التعليم')
+        )
+    else:
+        cursor.execute(
+            'UPDATE users SET name = ? WHERE email = ?',
+            ('شركة/جهة حكومية التدريبية', 'company@tawun.com')
+        )
+        cursor.execute(
+            'UPDATE companies SET organization_category = ?, ministry = ? WHERE user_id = ?',
+            ('شركة/جهة حكومية', 'وزارة التعليم', company_user['id'])
         )
     
     if not cursor.execute('SELECT id FROM users WHERE email = ?', ('supervisor@tawun.com',)).fetchone():
@@ -123,5 +133,58 @@ def seed_default_users(password_hash_fn):
             (user_id, 'علوم الحاسب')
         )
     
+    seed_default_applicants(cursor, password_hash_fn)
+    
     conn.commit()
     conn.close()
+
+
+def seed_default_applicants(cursor, password_hash_fn):
+    company_user = cursor.execute('SELECT id FROM users WHERE email = ?', ('company@tawun.com',)).fetchone()
+    if not company_user:
+        return
+    company_row = cursor.execute('SELECT id FROM companies WHERE user_id = ?', (company_user['id'],)).fetchone()
+    if not company_row:
+        return
+    company_id = company_row['id']
+    
+    extra_students = [
+        ('سارة أحمد', 'sara@tawun.com', '0501112233', 'female', 'نظم المعلومات', 21, 'Excel, تحليل البيانات'),
+        ('خالد العتيبي', 'khalid@tawun.com', '0502223344', 'male', 'هندسة الحاسب', 23, 'Java, Python, DevOps'),
+        ('نورة السعيد', 'noura@tawun.com', '0503334455', 'female', 'علوم الحاسب', 20, 'Web Development, React'),
+        ('عمر الشمري', 'omar@tawun.com', '0504445566', 'male', 'تقنية المعلومات', 22, 'Networking, أمن المعلومات'),
+        ('فاطمة القحطاني', 'fatima@tawun.com', '0505556677', 'female', 'هندسة البرمجيات', 21, 'UI/UX, Figma'),
+    ]
+    
+    statuses = ['pending', 'pending', 'accepted', 'accepted', 'rejected']
+    for i, (name, email, phone, gender, major, age, skills) in enumerate(extra_students):
+        if not cursor.execute('SELECT id FROM users WHERE email = ?', (email,)).fetchone():
+            cursor.execute(
+                'INSERT INTO users (name, email, password, phone, role, department) VALUES (?, ?, ?, ?, ?, ?)',
+                (name, email, password_hash_fn('123456'), phone, 'student', major)
+            )
+            user_id = cursor.lastrowid
+            cursor.execute(
+                'INSERT INTO students (user_id, gender, major, age, skills) VALUES (?, ?, ?, ?, ?)',
+                (user_id, gender, major, age, skills)
+            )
+            student_id = cursor.lastrowid
+            status = statuses[i % len(statuses)]
+            cursor.execute(
+                'INSERT INTO applications (student_id, company_id, status) VALUES (?, ?, ?)',
+                (student_id, company_id, status)
+            )
+    
+    ahmed = cursor.execute('SELECT id FROM users WHERE email = ?', ('student@tawun.com',)).fetchone()
+    if ahmed:
+        student_row = cursor.execute('SELECT id FROM students WHERE user_id = ?', (ahmed['id'],)).fetchone()
+        if student_row:
+            existing = cursor.execute(
+                'SELECT id FROM applications WHERE student_id = ? AND company_id = ?',
+                (student_row['id'], company_id)
+            ).fetchone()
+            if not existing:
+                cursor.execute(
+                    'INSERT INTO applications (student_id, company_id, status) VALUES (?, ?, ?)',
+                    (student_row['id'], company_id, 'pending')
+                )

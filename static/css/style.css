@@ -80,7 +80,8 @@ body {
 .nav-links a {
     color: #ffffff;
     text-decoration: none;
-    font-size: 1rem;
+    font-size: 1.1rem;
+    font-weight: 700;
 }
 
 .nav-links a:hover {
@@ -101,10 +102,10 @@ body {
 /* الأزرار */
 .btn {
     display: inline-block;
-    padding: 0.75rem 1.5rem;
+    padding: 0.4rem 0.9rem;
     font-family: inherit;
     font-size: 1rem;
-    font-weight: 400;
+    font-weight: 700;
     text-align: center;
     text-decoration: none;
     border: none;
@@ -158,33 +159,72 @@ body {
 /* الصفحة الرئيسية */
 .hero {
     text-align: center;
-    padding: 3rem 2rem;
+    padding: 4rem 2rem;
 }
 
 .hero-logo {
-    height: 80px;
-    margin-bottom: 1.5rem;
+    height: 120px;
+    margin-bottom: 2rem;
 }
 
 .hero h1 {
-    font-size: 2rem;
+    font-size: 2.75rem;
     font-weight: 700;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 }
 
+.hero-desc,
 .hero p {
-    font-size: 1.1rem;
-    margin-bottom: 2rem;
-    max-width: 600px;
+    font-size: 1.35rem;
+    margin-bottom: 2.5rem;
+    max-width: 720px;
     margin-left: auto;
     margin-right: auto;
+    line-height: 1.8;
 }
 
 .hero-buttons {
     display: flex;
-    gap: 1rem;
+    gap: 0.75rem;
     justify-content: center;
     flex-wrap: wrap;
+}
+
+.hero-buttons .btn {
+    padding: 0.5rem 1.1rem;
+    font-size: 1.1rem;
+}
+
+.about-project {
+    padding: 3rem 2rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.about-project h2 {
+    font-size: 1.9rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: var(--primary);
+}
+
+.about-project h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    margin-top: 2rem;
+}
+
+.about-project p,
+.about-project li {
+    font-size: 1.15rem;
+    line-height: 1.85;
+    margin-bottom: 1rem;
+}
+
+.about-project ul {
+    margin-bottom: 1.5rem;
+    padding-right: 1.5rem;
 }
 
 /* النماذج */
@@ -241,7 +281,7 @@ body {
 
 .form-actions .btn {
     width: 100%;
-    padding: 0.9rem;
+    padding: 0.6rem;
 }
 
 .form-footer {
@@ -403,6 +443,39 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 12px;
 }
+
+/* بطاقات الإحصائيات - لوحة الشركة/الجهة */
+.stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    padding: 1.25rem 1rem;
+    background: #fafafa;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    text-align: center;
+}
+
+.stat-card .stat-number {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.35rem;
+}
+
+.stat-card .stat-label {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.stat-card.stat-pending .stat-number { color: #856404; }
+.stat-card.stat-accepted .stat-number { color: #1B5E20; }
+.stat-card.stat-rejected .stat-number { color: #721c24; }
 
 .dashboard-section h2 {
     font-size: 1.25rem;
@@ -607,11 +680,25 @@ body {
     }
 
     .hero h1 {
-        font-size: 1.75rem;
+        font-size: 2rem;
     }
 
+    .hero-desc,
     .hero p {
-        font-size: 1rem;
+        font-size: 1.15rem;
+    }
+
+    .about-project h2 {
+        font-size: 1.6rem;
+    }
+
+    .about-project h3 {
+        font-size: 1.25rem;
+    }
+
+    .about-project p,
+    .about-project li {
+        font-size: 1.05rem;
     }
 
     .form-section {
@@ -651,7 +738,7 @@ body {
     }
 
     .header .btn-primary {
-        padding: 0.5rem 1rem;
+        padding: 0.4rem 0.8rem;
         font-size: 0.9rem;
     }
 
@@ -672,15 +759,33 @@ body {
     }
 
     .hero-logo {
-        height: 60px;
+        height: 90px;
     }
 
     .hero h1 {
+        font-size: 1.75rem;
+    }
+
+    .hero-desc,
+    .hero p {
+        font-size: 1.1rem;
+    }
+
+    .about-project {
+        padding: 2rem 1rem 3rem;
+    }
+
+    .about-project h2 {
         font-size: 1.5rem;
     }
 
-    .hero p {
-        font-size: 0.95rem;
+    .about-project h3 {
+        font-size: 1.15rem;
+    }
+
+    .about-project p,
+    .about-project li {
+        font-size: 1rem;
     }
 
     .hero-buttons {
@@ -726,6 +831,15 @@ body {
 
     .dashboard-section h2 {
         font-size: 1.1rem;
+    }
+
+    .stats-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .stat-card .stat-number {
+        font-size: 1.5rem;
     }
 
     .info-grid {
@@ -888,29 +1002,47 @@ body {
     }
 
     .hero-logo {
-        height: 70px;
+        height: 80px;
     }
 
     .hero h1 {
-        font-size: 1.4rem;
+        font-size: 1.5rem;
         line-height: 1.4;
     }
 
+    .hero-desc,
     .hero p {
-        font-size: 0.95rem;
+        font-size: 1.05rem;
         margin-bottom: 1.75rem;
         line-height: 1.7;
+    }
+
+    .about-project {
+        padding: 1.5rem 0.75rem 2.5rem;
+    }
+
+    .about-project h2 {
+        font-size: 1.35rem;
+    }
+
+    .about-project h3 {
+        font-size: 1.1rem;
+    }
+
+    .about-project p,
+    .about-project li {
+        font-size: 0.95rem;
     }
 
     .hero-buttons {
         flex-direction: column;
         max-width: 100%;
-        gap: 0.75rem;
+        gap: 0.5rem;
     }
 
     .hero-buttons .btn {
         width: 100%;
-        padding: 1rem 1.5rem;
+        padding: 0.55rem 1rem;
         font-size: 1.05rem;
         border-radius: 12px;
     }
@@ -938,13 +1070,13 @@ body {
     }
 
     .btn {
-        padding: 0.75rem 1.5rem;
+        padding: 0.45rem 1rem;
         font-size: 1rem;
         border-radius: 12px;
     }
 
     .form-actions .btn {
-        padding: 1rem;
+        padding: 0.6rem;
         font-size: 1.05rem;
     }
 
@@ -966,6 +1098,24 @@ body {
     .dashboard-section {
         margin-bottom: 1.75rem;
         padding: 1.25rem;
+    }
+
+    .stats-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        padding: 1rem 0.75rem;
+    }
+
+    .stat-card .stat-number {
+        font-size: 1.35rem;
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.8rem;
     }
 
     .dashboard-section h2 {

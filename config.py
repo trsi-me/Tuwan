@@ -5,14 +5,9 @@ import os
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 ASSETS_DIR = os.path.join(BASE_DIR, 'assets')
 
-# إعدادات Flask
 SECRET_KEY = os.environ.get('SECRET_KEY', 'tawun-secret-key-2026')
 DEBUG = True
-
-# مسار قاعدة البيانات
 DATABASE_PATH = os.path.join(BASE_DIR, 'database', 'database.db')
-
-# مجلد رفع الملفات
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads', 'cv')
 ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
 AVATAR_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads', 'avatars')
