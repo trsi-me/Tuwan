@@ -11,3 +11,6 @@ static/uploads/cv/*
 static/uploads/avatars/*
 !static/uploads/avatars/.gitkeep
 RENDER_DEPLOY.md
+
+# نموذج المطابقة (أكبر من حد GitHub 100MB - يُحمّل تلقائياً من Hugging Face إن لم يوجد)
+tawun-match-model/
