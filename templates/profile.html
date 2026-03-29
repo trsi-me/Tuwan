@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}الملف الشخصي - منصة تعاون{% endblock %}
+{% block title %}{% if session.get('role') == 'supervisor' %}الملف التفصيلي — مشرف تدريب{% else %}الملف الشخصي{% endif %} - منصة تعاون{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -10,33 +10,83 @@
             <img src="{{ url_for('serve_avatar', filename=user.avatar_file) }}" alt="{{ user.name }}">
         </div>
         {% endif %}
-        <h1>الملف الشخصي</h1>
+        <h1>{% if session.get('role') == 'supervisor' %}الملف التفصيلي — مشرف التدريب التعاوني{% else %}الملف الشخصي{% endif %}</h1>
+        {% if session.get('role') == 'supervisor' %}
+        <p class="muted">{{ college_name }}</p>
+        {% endif %}
     </div>
 
+    {% if session.get('role') == 'supervisor' %}
+    <div class="supervisor-account-nav">
+        <a href="{{ url_for('dashboard_supervisor') }}" class="btn btn-secondary">لوحة التحكم</a>
+        <a href="{{ url_for('edit_profile') }}" class="btn btn-primary">تعديل بياناتي وحسابي</a>
+    </div>
+    {% endif %}
+
     <div class="dashboard-section">
-        <h2>البيانات الأساسية</h2>
+        <h2>{% if session.get('role') == 'supervisor' %}بيانات الحساب والتواصل{% else %}البيانات الأساسية{% endif %}</h2>
         <div class="info-grid">
             <div class="info-item">
-                <label>الاسم</label>
+                <label>الكلية</label>
+                <span>{{ college_name }}</span>
+            </div>
+            {% if session.get('role') == 'supervisor' %}
+            <div class="info-item">
+                <label>نوع الحساب</label>
+                <span>مشرف أكاديمي — الإشراف على التدريب التعاوني</span>
+            </div>
+            <div class="info-item">
+                <label>الصفة</label>
+                <span>
+                    {% if user.gender == 'male' %}دكتور — مشرف تدريب
+                    {% elif user.gender == 'female' %}دكتورة — مشرفة تدريب
+                    {% else %}يُرجى تحديد الصفة من «تعديل بياناتي»{% endif %}
+                </span>
+            </div>
+            <div class="info-item">
+                <label>رقم المستخدم في المنصة</label>
+                <span>{{ user.id }}</span>
+            </div>
+            {% endif %}
+            <div class="info-item">
+                <label>الاسم الظاهر</label>
                 <span>{{ user.name }}</span>
             </div>
             <div class="info-item">
-                <label>البريد الإلكتروني</label>
-                <span>{{ user.email }}</span>
+                <label>البريد الإلكتروني (اسم المستخدم للدخول)</label>
+                <span dir="ltr" style="display:inline-block">{{ user.email }}</span>
             </div>
             <div class="info-item">
                 <label>رقم الجوال</label>
-                <span>{{ user.phone or '-' }}</span>
+                <span>{{ user.phone or '— لم يُضف' }}</span>
             </div>
             <div class="info-item">
-                <label>القسم</label>
+                <label>القسم الأكاديمي</label>
                 <span>{{ user.department or '-' }}</span>
             </div>
             {% if extra %}
-            {% if 'major' in extra %}
+            {% if 'major' in extra and session.get('role') != 'supervisor' %}
             <div class="info-item">
                 <label>التخصص</label>
                 <span>{{ extra.major or '-' }}</span>
+            </div>
+            {% endif %}
+            {% if session.get('role') == 'student' %}
+            <div class="info-item">
+                <label>اسم المقرر</label>
+                <span>{{ extra.course_name if extra and extra.course_name else '-' }}</span>
+            </div>
+            <div class="info-item">
+                <label>الرقم المرجعي</label>
+                <span>{{ extra.crn if extra and extra.crn else '-' }}</span>
+            </div>
+            <div class="info-item">
+                <label>الشعبة</label>
+                <span>{{ extra.section_code if extra and extra.section_code else '-' }}</span>
+            </div>
+            <div class="info-item">
+                <label>المشرف الأكاديمي</label>
+                <span>{{ professor_name if professor_name else '-' }}</span>
             </div>
             {% endif %}
             {% if 'organization_type' in extra %}
@@ -59,10 +109,67 @@
             {% endif %}
             {% endif %}
         </div>
+        {% if session.get('role') == 'supervisor' %}
+        <p class="muted account-hint">كلمة المرور تُغيّر فقط عبر طلب من إدارة المنظومة أو باستخدام رابط «نسيت كلمة المرور» إن وُجد. لتعديل الاسم والجوال والقسم والصفة استخدم زر «تعديل بياناتي» أعلاه.</p>
+        {% endif %}
     </div>
 
+    {% if session.get('role') == 'supervisor' %}
+    <div class="dashboard-section">
+        <h2>المقررات والشُعب المسجّلة (طلابي)</h2>
+        <p class="muted">الطلاب يظهرون عند تطابق الرقم المرجعي والشعبة مع بياناتهم. مفرّقون أدناه بين البنين والبنات.</p>
+        {% if supervisor_sections %}
+        {% for sec in supervisor_sections %}
+        <div class="section-block supervisor-profile-section">
+            <h3 class="section-subtitle">{{ sec.course_name }}</h3>
+            <p class="muted">الرقم المرجعي: <strong>{{ sec.crn }}</strong> — الشعبة: <strong>{{ sec.section_code }}</strong></p>
+            {% if sec.students %}
+            <div class="gender-split-grid">
+                <div class="gender-panel">
+                    <h4>البنين</h4>
+                    {% if sec.students_male %}
+                    <ul class="plain-list">
+                        {% for st in sec.students_male %}
+                        <li><strong>{{ st.name }}</strong>{% if st.major %} — {{ st.major }}{% endif %}<br><small dir="ltr">{{ st.email or '' }}</small></li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="muted">لا يوجد.</p>
+                    {% endif %}
+                </div>
+                <div class="gender-panel">
+                    <h4>البنات</h4>
+                    {% if sec.students_female %}
+                    <ul class="plain-list">
+                        {% for st in sec.students_female %}
+                        <li><strong>{{ st.name }}</strong>{% if st.major %} — {{ st.major }}{% endif %}<br><small dir="ltr">{{ st.email or '' }}</small></li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="muted">لا يوجد.</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <p class="muted">لا يوجد طلاب مطابقون لهذه الشعبة بعد.</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <p>لم تُضف أي شعبة بعد. من <a href="{{ url_for('dashboard_supervisor') }}">لوحة التحكم</a> يمكنك إضافة المقرر والرقم المرجعي والشعبة.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if session.get('role') != 'supervisor' %}
     <div class="dashboard-section">
         <a href="{{ url_for('edit_profile') }}" class="btn btn-secondary">تعديل البيانات</a>
     </div>
+    {% else %}
+    <div class="dashboard-section">
+        <a href="{{ url_for('edit_profile') }}" class="btn btn-primary">تعديل بياناتي وحسابي</a>
+        <a href="{{ url_for('dashboard_supervisor') }}" class="btn btn-secondary">العودة للوحة التحكم</a>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

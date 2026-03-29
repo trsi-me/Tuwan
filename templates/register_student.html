@@ -26,12 +26,34 @@
             <input type="tel" id="phone" name="phone" placeholder="05xxxxxxxx">
         </div>
         <div class="form-group">
-            <label for="department">القسم</label>
-            <input type="text" id="department" name="department" placeholder="مثال: علوم الحاسب">
+            <label for="department">القسم *</label>
+            <select id="department" name="department" required>
+                <option value="">-- اختر القسم --</option>
+                {% for d in faculty_departments %}
+                <option value="{{ d }}">{{ d }}</option>
+                {% endfor %}
+            </select>
         </div>
         <div class="form-group">
-            <label for="major">التخصص</label>
-            <input type="text" id="major" name="major" placeholder="مثال: هندسة البرمجيات">
+            <label for="major">التخصص *</label>
+            <select id="major" name="major" required>
+                <option value="">-- اختر التخصص --</option>
+                {% for d in faculty_departments %}
+                <option value="{{ d }}">{{ d }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="course_name">اسم المقرر *</label>
+            <input type="text" id="course_name" name="course_name" required placeholder="كما هو مسجّل في الجامعة">
+        </div>
+        <div class="form-group">
+            <label for="crn">الرقم المرجعي (CRN) *</label>
+            <input type="text" id="crn" name="crn" required placeholder="نفس رقم الشعبة لدى المشرف">
+        </div>
+        <div class="form-group">
+            <label for="section_code">الشعبة *</label>
+            <input type="text" id="section_code" name="section_code" required placeholder="مثال: 01 أو أ">
         </div>
         <div class="form-group">
             <label for="age">العمر</label>

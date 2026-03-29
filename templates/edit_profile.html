@@ -1,12 +1,25 @@
 {% extends "base.html" %}
 
-{% block title %}تعديل البيانات - منصة تعاون{% endblock %}
+{% block title %}{% if session.get('role') == 'supervisor' %}تعديل بيانات المشرف والحساب{% else %}تعديل البيانات{% endif %} - منصة تعاون{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="dashboard-header">
-        <h1>تعديل البيانات</h1>
+        <h1>{% if session.get('role') == 'supervisor' %}تعديل بياناتي وحسابي (مشرف تدريب){% else %}تعديل البيانات{% endif %}</h1>
+        {% if session.get('role') == 'supervisor' %}
+        <p class="muted">{{ college_name }}</p>
+        <div class="supervisor-account-nav" style="margin-top:1rem">
+            <a href="{{ url_for('profile') }}" class="btn btn-secondary">الملف التفصيلي</a>
+            <a href="{{ url_for('dashboard_supervisor') }}" class="btn btn-secondary">لوحة التحكم</a>
+        </div>
+        {% endif %}
     </div>
+
+    {% if session.get('role') == 'supervisor' %}
+    <div class="form-intro container">
+        <p>هنا يمكنك تحديث <strong>الاسم</strong>، <strong>رقم الجوال</strong>، <strong>الصورة الشخصية</strong>، <strong>القسم</strong>، و<strong>الصفة (دكتور / دكتورة)</strong>. البريد الإلكتروني هو اسم الدخول ولا يُغيّر من هذه الصفحة.</p>
+    </div>
+    {% endif %}
 
     <div class="form-section container">
         <form method="POST" action="{{ url_for('edit_profile') }}" enctype="multipart/form-data" class="edit-form">
@@ -28,11 +41,38 @@
                 <label for="phone">رقم الجوال</label>
                 <input type="tel" id="phone" name="phone" value="{{ user.phone or '' }}" placeholder="05xxxxxxxx">
             </div>
-            <div class="form-group">
-                <label for="department">القسم</label>
-                <input type="text" id="department" name="department" value="{{ user.department or '' }}">
-            </div>
+
             {% if session.get('role') == 'student' and extra %}
+            <div class="form-group">
+                <label for="department">القسم *</label>
+                <select id="department" name="department" required>
+                    <option value="">-- اختر القسم --</option>
+                    {% for d in faculty_departments %}
+                    <option value="{{ d }}" {% if user.department == d %}selected{% endif %}>{{ d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="major">التخصص *</label>
+                <select id="major" name="major" required>
+                    <option value="">-- اختر التخصص --</option>
+                    {% for d in faculty_departments %}
+                    <option value="{{ d }}" {% if extra.major == d %}selected{% endif %}>{{ d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="course_name">اسم المقرر *</label>
+                <input type="text" id="course_name" name="course_name" value="{{ extra.course_name or '' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="crn">الرقم المرجعي (CRN) *</label>
+                <input type="text" id="crn" name="crn" value="{{ extra.crn or '' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="section_code">الشعبة *</label>
+                <input type="text" id="section_code" name="section_code" value="{{ extra.section_code or '' }}" required>
+            </div>
             <div class="form-group">
                 <label for="skills">المهارات</label>
                 <textarea id="skills" name="skills" placeholder="اكتب مهاراتك مفصولة بفاصلة">{{ extra.skills or '' }}</textarea>
@@ -46,7 +86,38 @@
                 <small>الملفات المسموحة: PDF, DOC, DOCX - الحد الأقصى 5 ميجابايت</small>
                 {% endif %}
             </div>
+
+            {% elif session.get('role') == 'supervisor' %}
+            <div class="form-group">
+                <label for="department">القسم *</label>
+                <select id="department" name="department" required>
+                    <option value="">-- اختر القسم --</option>
+                    {% for d in faculty_departments %}
+                    <option value="{{ d }}" {% if user.department == d %}selected{% endif %}>{{ d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="gender">مشرف التدريب *</label>
+                <select id="gender" name="gender" required>
+                    <option value="">-- اختر --</option>
+                    <option value="male" {% if user.gender == 'male' %}selected{% endif %}>دكتور (مشرف تدريب)</option>
+                    <option value="female" {% if user.gender == 'female' %}selected{% endif %}>دكتورة (مشرفة تدريب)</option>
+                </select>
+            </div>
+
+            {% elif session.get('role') == 'company' %}
+            <div class="form-group">
+                <label for="department">الجهة (التخصص) *</label>
+                <select id="department" name="department" required>
+                    <option value="">-- اختر تخصصاً --</option>
+                    {% for m in college_majors %}
+                    <option value="{{ m }}" {% if user.department == m %}selected{% endif %}>{{ m }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             {% endif %}
+
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
             </div>

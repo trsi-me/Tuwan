@@ -16,6 +16,9 @@
             </button>
             <a href="{{ url_for('index') }}" class="logo-wrap">
                 <img src="{{ url_for('serve_assets', filename='images/Logo.png') }}" alt="منصة تعاون" class="logo">
+                {% if college_name %}
+                <span class="header-college">{{ college_name }}</span>
+                {% endif %}
             </a>
             <span class="header-spacer"></span>
             <nav class="nav-links" id="navLinks">
@@ -28,6 +31,11 @@
                     </a>
                     {% endif %}
                     <a href="{{ url_for('dashboard') }}">لوحة التحكم</a>
+                    {% if session.get('role') == 'admin' %}
+                    <a href="{{ url_for('admin_supervisors') }}">المشرفون</a>
+                    <a href="{{ url_for('admin_students') }}">الطلاب</a>
+                    <a href="{{ url_for('admin_users') }}">المستخدمون</a>
+                    {% endif %}
                     <a href="{{ url_for('profile') }}">الملف الشخصي</a>
                     <a href="{{ url_for('logout') }}">تسجيل الخروج</a>
                 {% else %}

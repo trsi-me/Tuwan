@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة الإدارة - منصة تعاون{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <h1>حساب مدير النظام</h1>
+        <p class="muted">{{ college_name }}</p>
+    </div>
+    <div class="dashboard-section">
+        <div class="info-grid">
+            <div class="info-item">
+                <label>الاسم</label>
+                <span>{{ user.name }}</span>
+            </div>
+            <div class="info-item">
+                <label>البريد</label>
+                <span dir="ltr">{{ user.email }}</span>
+            </div>
+        </div>
+        <p class="muted" style="margin-top:1rem">من هنا تدير حسابات المشرفين: عرض، تعديل، تعليق، حذف، وإضافة مشرفين جدد.</p>
+        <div class="supervisor-account-nav" style="margin-top:1rem">
+            <a href="{{ url_for('admin_supervisors') }}" class="btn btn-primary">المشرفون</a>
+            <a href="{{ url_for('admin_students') }}" class="btn btn-secondary">الطلاب</a>
+            <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">كل المستخدمين</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

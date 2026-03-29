@@ -6,7 +6,8 @@
 <div class="hero">
     <img src="{{ url_for('serve_assets', filename='images/Logo.png') }}" alt="منصة تعاون" class="hero-logo">
     <h1>منصة تعاون لتنظيم التدريب التعاوني</h1>
-    <p class="hero-desc">منصة جامعية تربط الطلاب بالجهات الحكومية والخاصة لتنظيم برامج التدريب التعاوني وتسهيل عملية التنسيق والإشراف الأكاديمي.</p>
+    <p class="hero-college">{{ college_name }}</p>
+    <p class="hero-desc">منصة جامعية تربط الطلاب بالجهات الحكومية والخاصة لتنظيم برامج التدريب التعاوني وتسهيل عملية التنسيق والإشراف الأكاديمي ضمن {{ college_name }}.</p>
     <div class="hero-buttons">
         <a href="{{ url_for('login') }}" class="btn btn-primary">تسجيل الدخول</a>
         <a href="{{ url_for('login') }}#register" class="btn btn-secondary">إنشاء حساب</a>

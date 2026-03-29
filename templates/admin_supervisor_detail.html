@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}مشرف: {{ sup.name }} - إدارة{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <h1>تعديل المشرف — {{ sup.name }}</h1>
+        <p class="muted"><a href="{{ url_for('admin_supervisors') }}">← العودة لقائمة المشرفين</a></p>
+    </div>
+
+    <div class="dashboard-section">
+        <h2>بيانات الحساب</h2>
+        <form method="POST" action="{{ url_for('admin_supervisor_update', supervisor_pk=sup.supervisor_id) }}" class="form-section" style="max-width: 36rem">
+            <div class="form-group">
+                <label for="name">الاسم *</label>
+                <input type="text" id="name" name="name" value="{{ sup.name }}" required>
+            </div>
+            <div class="form-group">
+                <label for="email">البريد الإلكتروني *</label>
+                <input type="email" id="email" name="email" value="{{ sup.email }}" required dir="ltr">
+            </div>
+            <div class="form-group">
+                <label for="phone">رقم الجوال</label>
+                <input type="tel" id="phone" name="phone" value="{{ sup.phone or '' }}" placeholder="05xxxxxxxx">
+            </div>
+            <div class="form-group">
+                <label for="department">القسم *</label>
+                <select id="department" name="department" required>
+                    {% for d in faculty_departments %}
+                    <option value="{{ d }}" {% if sup.department == d %}selected{% endif %}>{{ d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="gender">الصفة *</label>
+                <select id="gender" name="gender" required>
+                    <option value="male" {% if sup.gender == 'male' %}selected{% endif %}>دكتور</option>
+                    <option value="female" {% if sup.gender == 'female' %}selected{% endif %}>دكتورة</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="new_password">كلمة مرور جديدة (اختياري)</label>
+                <input type="password" id="new_password" name="new_password" minlength="6" placeholder="اتركه فارغاً إذا لم ترد التغيير">
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="dashboard-section">
+        <h2>حالة الحساب</h2>
+        <p>الحالة الحالية:
+            {% if sup.account_status == 'suspended' %}
+            <strong>معلّق</strong> — لا يستطيع المشرف تسجيل الدخول.
+            {% else %}
+            <strong>نشط</strong>
+            {% endif %}
+        </p>
+        <form method="POST" action="{{ url_for('admin_supervisor_suspend', supervisor_pk=sup.supervisor_id) }}" style="display:inline" onsubmit="return confirm('تأكيد تنفيذ العملية على الحساب؟');">
+            <button type="submit" class="btn {% if sup.account_status == 'suspended' %}btn-success{% else %}btn-warning{% endif %}">
+                {% if sup.account_status == 'suspended' %}تفعيل الحساب{% else %}تعليق الحساب{% endif %}
+            </button>
+        </form>
+    </div>
+
+    <div class="dashboard-section">
+        <h2>طلاب مُسندون لهذا المشرف (رسمياً)</h2>
+        {% if assigned_students %}
+        <ul class="plain-list">
+            {% for st in assigned_students %}
+            <li><strong>{{ st.name }}</strong> — {{ st.email }}<br><small class="muted">{{ st.course_name }} / {{ st.crn }} / {{ st.section_code }}</small></li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted">لا يوجد طلاب مسندون عبر الإدارة.</p>
+        {% endif %}
+    </div>
+
+    <div class="dashboard-section">
+        <h2>طلاب المشرف (حسب الشعب والرقم المرجعي)</h2>
+        <p class="muted">يظهر الطلاب عند تطابق الرقم المرجعي والشعبة مع بياناتهم.</p>
+        {% if sections_with_students %}
+        {% for sec in sections_with_students %}
+        <div class="section-block supervisor-profile-section">
+            <h3 class="section-subtitle">{{ sec.course_name }}</h3>
+            <p class="muted">الرقم المرجعي: <strong>{{ sec.crn }}</strong> — الشعبة: <strong>{{ sec.section_code }}</strong></p>
+            {% if sec.students %}
+            <div class="gender-split-grid">
+                <div class="gender-panel">
+                    <h4>البنين</h4>
+                    {% if sec.students_male %}
+                    <ul class="plain-list">
+                        {% for st in sec.students_male %}
+                        <li><strong>{{ st.name }}</strong>{% if st.major %} — {{ st.major }}{% endif %}<br><small dir="ltr">{{ st.email or '' }}</small></li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="muted">لا يوجد.</p>
+                    {% endif %}
+                </div>
+                <div class="gender-panel">
+                    <h4>البنات</h4>
+                    {% if sec.students_female %}
+                    <ul class="plain-list">
+                        {% for st in sec.students_female %}
+                        <li><strong>{{ st.name }}</strong>{% if st.major %} — {{ st.major }}{% endif %}<br><small dir="ltr">{{ st.email or '' }}</small></li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="muted">لا يوجد.</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <p class="muted">لا يوجد طلاب مطابقون لهذه الشعبة.</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <p>لم يُسجّل هذا المشرف أي شعبة بعد (من لوحة المشرف).</p>
+        {% endif %}
+    </div>
+
+    <div class="dashboard-section admin-danger-zone">
+        <h2>حذف نهائي</h2>
+        <p class="muted">يحذف حساب المشرف وجميع شُعه المسجّلة. لا يمكن التراجع.</p>
+        <form method="POST" action="{{ url_for('admin_supervisor_delete', supervisor_pk=sup.supervisor_id) }}" onsubmit="return confirm('حذف المشرف {{ sup.name }} نهائياً؟');">
+            <button type="submit" class="btn btn-danger btn-delete-final">حذف المشرف نهائياً</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -6,6 +6,258 @@
 <div class="container">
     <div class="dashboard-header">
         <h1>لوحة المشرف الأكاديمي</h1>
+        <p class="muted">{{ college_name }}</p>
+    </div>
+
+    <div class="supervisor-account-nav dashboard-quick-links">
+        <a href="{{ url_for('profile') }}" class="btn btn-primary">الملف التفصيلي</a>
+        <a href="{{ url_for('edit_profile') }}" class="btn btn-secondary">تعديل بياناتي</a>
+    </div>
+
+    <div class="dashboard-section card-highlight">
+        <h2>طلابي المسندون إليك (إسناد رسمي)</h2>
+        <p class="muted">طلاب ربطهم المدير أو أضفتَهم أنت بحسابك كمشرف مسؤول.</p>
+        {% if assigned_students %}
+        <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>البريد</th>
+                    <th>الجنس</th>
+                    <th>المقرر / الرقم / الشعبة</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for st in assigned_students %}
+                <tr>
+                    <td>{{ st.name }}</td>
+                    <td dir="ltr">{{ st.email or '-' }}</td>
+                    <td>{% if st.gender == 'male' %}ذكر{% elif st.gender == 'female' %}أنثى{% else %}—{% endif %}</td>
+                    <td><small>{{ st.course_name or '-' }} / {{ st.crn or '-' }} / {{ st.section_code or '-' }}</small></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p class="muted">لا يوجد طلاب مسندون بعد. أضف طالباً من النموذج أدناه أو يُسندك المدير من لوحة الإدارة.</p>
+        {% endif %}
+    </div>
+
+    <div class="dashboard-section">
+        <h2>إضافة طالب جديد</h2>
+        <p class="muted">يُنشأ حساب للطالب ويُربط تلقائياً بك كمشرف.</p>
+        <form method="POST" action="{{ url_for('supervisor_add_student') }}" class="form-section admin-add-form" style="max-width: 40rem">
+            <div class="form-group">
+                <label for="s_name">الاسم الكامل *</label>
+                <input type="text" id="s_name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="s_email">البريد *</label>
+                <input type="email" id="s_email" name="email" required dir="ltr">
+            </div>
+            <div class="form-group">
+                <label for="s_password">كلمة المرور *</label>
+                <input type="password" id="s_password" name="password" required minlength="6">
+            </div>
+            <div class="form-group">
+                <label for="s_phone">الجوال</label>
+                <input type="tel" id="s_phone" name="phone" placeholder="05xxxxxxxx">
+            </div>
+            <div class="form-group">
+                <label for="s_department">القسم *</label>
+                <select id="s_department" name="department" required>
+                    <option value="">-- اختر --</option>
+                    {% for d in faculty_departments %}
+                    <option value="{{ d }}">{{ d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="s_major">التخصص *</label>
+                <select id="s_major" name="major" required>
+                    <option value="">-- اختر --</option>
+                    {% for d in faculty_departments %}
+                    <option value="{{ d }}">{{ d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="s_course_name">اسم المقرر *</label>
+                <input type="text" id="s_course_name" name="course_name" required>
+            </div>
+            <div class="form-group">
+                <label for="s_crn">الرقم المرجعي *</label>
+                <input type="text" id="s_crn" name="crn" required>
+            </div>
+            <div class="form-group">
+                <label for="s_section">الشعبة *</label>
+                <input type="text" id="s_section" name="section_code" required placeholder="01">
+            </div>
+            <div class="form-group">
+                <label for="s_gender">الجنس</label>
+                <select id="s_gender" name="gender">
+                    <option value="">—</option>
+                    <option value="male">ذكر</option>
+                    <option value="female">أنثى</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="s_age">العمر</label>
+                <input type="number" id="s_age" name="age" min="16" max="80">
+            </div>
+            <div class="form-group">
+                <label for="s_skills">المهارات</label>
+                <textarea id="s_skills" name="skills" rows="2"></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">إضافة الطالب</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="dashboard-section">
+        <h2>مشرفو التدريب في الكلية</h2>
+        <p class="muted">قائمة بأسماء أعضاء هيئة التدريس المكلّفين بالإشراف على التدريب، مفرّقة حسب الجنس.</p>
+        <div class="training-sup-grid">
+            <div class="gender-panel">
+                <h4>الدكاترة (مشرفو تدريب)</h4>
+                {% if training_supervisors_male %}
+                <ul class="plain-list">
+                    {% for p in training_supervisors_male %}
+                    <li><strong>{{ p.name }}</strong>{% if p.department %} — {{ p.department }}{% endif %}<br><small>{{ p.email or '' }}</small></li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="muted">لا يوجد مسجّلون في هذه الخانة بعد.</p>
+                {% endif %}
+            </div>
+            <div class="gender-panel">
+                <h4>الدكتورات (مشرفات تدريب)</h4>
+                {% if training_supervisors_female %}
+                <ul class="plain-list">
+                    {% for p in training_supervisors_female %}
+                    <li><strong>{{ p.name }}</strong>{% if p.department %} — {{ p.department }}{% endif %}<br><small>{{ p.email or '' }}</small></li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="muted">لا يوجد مسجّلون في هذه الخانة بعد.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% if training_supervisors_other %}
+        <div class="gender-panel" style="margin-top:1rem">
+            <h4>لم يُحدَّد الجنس بعد</h4>
+            <p class="muted">يُرجى من الزملاء تحديث البيانات من «تعديل الملف» واختيار دكتور/دكتورة.</p>
+            <ul class="plain-list">
+                {% for p in training_supervisors_other %}
+                <li><strong>{{ p.name }}</strong> — {{ p.email or '' }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="dashboard-section">
+        <h2>إضافة شعبة ومقرر (الرقم المرجعي)</h2>
+        <p>أدخل نفس الرقم المرجعي (CRN) ورمز الشعبة التي يستخدمها طلابك في حساباتهم ليظهروا تلقائياً في القائمة أدناه.</p>
+        <form method="POST" action="{{ url_for('add_supervisor_section') }}" class="form-inline-blocks" style="max-width:42rem">
+            <div class="form-group">
+                <label for="course_name">اسم المقرر *</label>
+                <input type="text" id="course_name" name="course_name" required placeholder="مثال: صحافة رقمية">
+            </div>
+            <div class="form-group">
+                <label for="crn">الرقم المرجعي (CRN) *</label>
+                <input type="text" id="crn" name="crn" required>
+            </div>
+            <div class="form-group">
+                <label for="section_code">الشعبة *</label>
+                <input type="text" id="section_code" name="section_code" required placeholder="مثال: 01">
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">حفظ الشعبة</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="dashboard-section">
+        <h2>طلابي حسب الشعبة والرقم المرجعي</h2>
+        {% if sections_with_students %}
+        {% for sec in sections_with_students %}
+        <div class="section-block" style="margin-bottom:1.75rem;border-bottom:1px solid rgba(0,0,0,.08);padding-bottom:1rem">
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;justify-content:space-between">
+                <h3 style="margin:0;font-size:1.05rem">{{ sec.course_name }}</h3>
+                <form method="POST" action="{{ url_for('delete_supervisor_section', sec_id=sec.id) }}" onsubmit="return confirm('حذف هذا السجل؟');">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">حذف الشعبة</button>
+                </form>
+            </div>
+            <p class="muted">الرقم المرجعي: <strong>{{ sec.crn }}</strong> — الشعبة: <strong>{{ sec.section_code }}</strong></p>
+            {% if sec.students %}
+            <div class="gender-split-grid">
+                <div class="gender-panel">
+                    <h4>البنين</h4>
+                    {% if sec.students_male %}
+                    <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>البريد</th>
+                                <th>التخصص</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for st in sec.students_male %}
+                            <tr>
+                                <td>{{ st.name }}</td>
+                                <td>{{ st.email or '-' }}</td>
+                                <td>{{ st.major or '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    </div>
+                    {% else %}
+                    <p class="muted">لا يوجد طلاب (ذكور) في هذه الشعبة.</p>
+                    {% endif %}
+                </div>
+                <div class="gender-panel">
+                    <h4>البنات</h4>
+                    {% if sec.students_female %}
+                    <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>البريد</th>
+                                <th>التخصص</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for st in sec.students_female %}
+                            <tr>
+                                <td>{{ st.name }}</td>
+                                <td>{{ st.email or '-' }}</td>
+                                <td>{{ st.major or '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    </div>
+                    {% else %}
+                    <p class="muted">لا يوجد طالبات في هذه الشعبة.</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <p>لا يوجد طلاب مطابقون بعد. تأكد أن الطلاب أدخلوا نفس الرقم المرجعي والشعبة في تسجيلهم أو تعديل بياناتهم.</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <p>لم تُضف أي شعبة بعد. استخدم النموذج أعلاه لإضافة المقرر والرقم المرجعي والشعبة.</p>
+        {% endif %}
     </div>
 
     <div class="dashboard-section">
@@ -33,34 +285,6 @@
         </div>
         {% else %}
         <p>لا توجد جهات مسجلة</p>
-        {% endif %}
-    </div>
-
-    <div class="dashboard-section">
-        <h2>الإشراف على المتدربين</h2>
-        {% if students %}
-        <div class="table-wrapper">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>الاسم</th>
-                    <th>القسم</th>
-                    <th>التخصص</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in students %}
-                <tr>
-                    <td>{{ s.name }}</td>
-                    <td>{{ s.department or '-' }}</td>
-                    <td>{{ s.major or '-' }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        </div>
-        {% else %}
-        <p>لا يوجد متدربون مسجلون</p>
         {% endif %}
     </div>
 

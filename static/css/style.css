@@ -54,13 +54,72 @@ body {
 
 .logo-wrap {
     display: flex;
+    flex-direction: column;
     align-items: center;
     flex: 0 0 auto;
+    gap: 0.15rem;
+    text-decoration: none;
+    color: inherit;
+}
+
+.header-college {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.92);
+    line-height: 1.2;
+    max-width: 14rem;
+    text-align: center;
 }
 
 .logo {
     height: 50px;
     width: auto;
+}
+
+.hero-college {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.gender-split-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-top: 0.75rem;
+}
+
+@media (max-width: 768px) {
+    .gender-split-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.gender-panel {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.75rem;
+    background: #fafafa;
+}
+
+.gender-panel h4 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+    color: var(--primary);
+}
+
+.training-sup-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-top: 0.75rem;
+}
+
+@media (max-width: 768px) {
+    .training-sup-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .header-spacer {
@@ -142,6 +201,79 @@ body {
 .btn-danger {
     background-color: #dc3545;
     color: white;
+}
+
+.btn-danger:hover {
+    filter: brightness(0.92);
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    color: #1a1a1a;
+    border: none;
+}
+
+.btn-warning:hover {
+    filter: brightness(0.94);
+}
+
+.btn-info {
+    background-color: #138496;
+    color: #fff;
+    border: none;
+}
+
+.btn-info:hover {
+    filter: brightness(1.08);
+}
+
+.btn-sm {
+    font-size: 0.85rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+}
+
+.btn-outline-danger {
+    background: transparent;
+    color: #c62828;
+    border: 2px solid #c62828;
+}
+
+.btn-outline-danger:hover {
+    background: #c62828;
+    color: #fff;
+}
+
+.admin-subnav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.card-highlight {
+    border: 1px solid rgba(27, 94, 32, 0.2);
+    border-radius: 12px;
+    background: linear-gradient(180deg, #f8fff8 0%, #fff 100%);
+}
+
+.assign-inline-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.assign-select {
+    max-width: 11rem;
+    font-size: 0.88rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.btn-delete-final {
+    font-weight: 600;
 }
 
 /* الحاويات */
@@ -1211,4 +1343,82 @@ body {
     .data-table {
         min-width: 450px;
     }
+}
+
+.muted {
+    color: #555;
+    font-size: 0.95rem;
+}
+
+.plain-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.plain-list li {
+    margin-bottom: 0.65rem;
+    line-height: 1.45;
+}
+
+.about-college-lead {
+    font-size: 1.1rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+.supervisor-account-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.dashboard-quick-links {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 1rem;
+}
+
+.form-intro {
+    max-width: 720px;
+    margin-bottom: 1rem;
+    padding: 0 1rem;
+    line-height: 1.7;
+    color: #444;
+}
+
+.account-hint {
+    margin-top: 1rem;
+    font-size: 0.88rem;
+}
+
+.supervisor-profile-section {
+    margin-bottom: 1.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.section-subtitle {
+    font-size: 1.1rem;
+    margin: 0 0 0.5rem;
+    color: var(--primary);
+}
+
+.row-suspended {
+    opacity: 0.75;
+    background: #fafafa;
+}
+
+.admin-danger-zone {
+    border: 1px solid #c62828;
+    border-radius: 8px;
+    padding: 1rem;
+    background: #fff8f8;
+}
+
+.admin-add-form {
+    margin-top: 0.5rem;
 }

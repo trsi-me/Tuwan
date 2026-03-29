@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}إدارة المشرفين - منصة تعاون{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <h1>لوحة الإدارة — المشرفون</h1>
+        <p class="muted">{{ college_name }}</p>
+        <nav class="admin-subnav">
+            <a href="{{ url_for('admin_students') }}" class="btn btn-secondary btn-sm">الطلاب</a>
+            <a href="{{ url_for('admin_users') }}" class="btn btn-secondary btn-sm">كل المستخدمين</a>
+        </nav>
+    </div>
+
+    <div class="dashboard-section">
+        <h2>إضافة مشرف جديد</h2>
+        <p class="muted">إنشاء حساب مشرف تدريب (بريد وكلمة مرور يعطيها المدير للمشرف).</p>
+        <form method="POST" action="{{ url_for('admin_supervisor_add') }}" class="form-section admin-add-form" style="max-width: 36rem">
+            <div class="form-group">
+                <label for="name">الاسم الكامل *</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">البريد الإلكتروني *</label>
+                <input type="email" id="email" name="email" required dir="ltr">
+            </div>
+            <div class="form-group">
+                <label for="password">كلمة المرور *</label>
+                <input type="password" id="password" name="password" required minlength="6">
+            </div>
+            <div class="form-group">
+                <label for="phone">رقم الجوال</label>
+                <input type="tel" id="phone" name="phone" placeholder="05xxxxxxxx">
+            </div>
+            <div class="form-group">
+                <label for="department">القسم *</label>
+                <select id="department" name="department" required>
+                    <option value="">-- اختر القسم --</option>
+                    {% for d in faculty_departments %}
+                    <option value="{{ d }}">{{ d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="gender">الصفة *</label>
+                <select id="gender" name="gender" required>
+                    <option value="">-- اختر --</option>
+                    <option value="male">دكتور (مشرف تدريب)</option>
+                    <option value="female">دكتورة (مشرفة تدريب)</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">إضافة المشرف</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="dashboard-section">
+        <h2>قائمة المشرفين</h2>
+        {% if supervisors %}
+        <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>البريد</th>
+                    <th>القسم</th>
+                    <th>الصفة</th>
+                    <th>الحالة</th>
+                    <th>إجراء</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in supervisors %}
+                <tr class="{% if s.account_status == 'suspended' %}row-suspended{% endif %}">
+                    <td>{{ s.name }}</td>
+                    <td dir="ltr">{{ s.email }}</td>
+                    <td>{{ s.department or '-' }}</td>
+                    <td>{% if s.gender == 'male' %}دكتور{% elif s.gender == 'female' %}دكتورة{% else %}—{% endif %}</td>
+                    <td>
+                        {% if s.account_status == 'suspended' %}
+                        <span class="status-badge status-rejected">معلّق</span>
+                        {% else %}
+                        <span class="status-badge status-accepted">نشط</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('admin_supervisor_detail', supervisor_pk=s.supervisor_id) }}" class="btn btn-primary" style="font-size:0.9rem">تفاصيل / تعديل / طلاب</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p>لا يوجد مشرفون مسجّلون بعد.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -12,6 +12,7 @@
 
     <div class="dashboard-header">
         <h1>لوحة الطالب</h1>
+        <p class="muted">{{ college_name }}</p>
     </div>
 
     <div class="dashboard-section">
@@ -36,6 +37,27 @@
             <div class="info-item">
                 <label>التخصص</label>
                 <span>{{ student.major if student and student.major else '-' }}</span>
+            </div>
+            <div class="info-item">
+                <label>اسم المقرر</label>
+                <span>{{ student.course_name if student and student.course_name else '-' }}</span>
+            </div>
+            <div class="info-item">
+                <label>الرقم المرجعي (CRN)</label>
+                <span>{{ student.crn if student and student.crn else '-' }}</span>
+            </div>
+            <div class="info-item">
+                <label>الشعبة</label>
+                <span>{{ student.section_code if student and student.section_code else '-' }}</span>
+            </div>
+            <div class="info-item">
+                <label>المشرف الأكاديمي</label>
+                <span>
+                    {% if student and student.assigned_supervisor_name %}
+                    <strong>{{ student.assigned_supervisor_name }}</strong> <span class="muted">(إسناد رسمي)</span>
+                    {% elif professor_name %}{{ professor_name }}
+                    {% else %}— (إسناد من الإدارة أو تطابق الشعبة){% endif %}
+                </span>
             </div>
             <div class="info-item">
                 <label>الجنس</label>

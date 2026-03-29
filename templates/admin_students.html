@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}إدارة الطلاب - منصة تعاون{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <h1>لوحة الإدارة — الطلاب</h1>
+        <p class="muted">{{ college_name }}</p>
+        <nav class="admin-subnav">
+            <a href="{{ url_for('admin_supervisors') }}" class="btn btn-secondary btn-sm">المشرفون</a>
+            <a href="{{ url_for('admin_users') }}" class="btn btn-secondary btn-sm">كل المستخدمين</a>
+        </nav>
+    </div>
+
+    <div class="dashboard-section">
+        <h2>إضافة طالب جديد</h2>
+        <p class="muted">إنشاء حساب طالب. يمكن إسناد مشرف مباشرة من القائمة.</p>
+        <form method="POST" action="{{ url_for('admin_student_add') }}" class="form-section admin-add-form" style="max-width: 40rem">
+            <div class="form-group">
+                <label for="name">الاسم الكامل *</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">البريد الإلكتروني *</label>
+                <input type="email" id="email" name="email" required dir="ltr">
+            </div>
+            <div class="form-group">
+                <label for="password">كلمة المرور *</label>
+                <input type="password" id="password" name="password" required minlength="6">
+            </div>
+            <div class="form-group">
+                <label for="phone">رقم الجوال</label>
+                <input type="tel" id="phone" name="phone" placeholder="05xxxxxxxx">
+            </div>
+            <div class="form-group">
+                <label for="assigned_supervisor_id">إسناد لمشرف (اختياري)</label>
+                <select id="assigned_supervisor_id" name="assigned_supervisor_id">
+                    <option value="">— بدون إسناد —</option>
+                    {% for sup in supervisors_dd %}
+                    <option value="{{ sup.supervisor_id }}">{{ sup.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="department">القسم *</label>
+                <select id="department" name="department" required>
+                    <option value="">-- اختر القسم --</option>
+                    {% for d in faculty_departments %}
+                    <option value="{{ d }}">{{ d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="major">التخصص *</label>
+                <select id="major" name="major" required>
+                    <option value="">-- اختر التخصص --</option>
+                    {% for d in faculty_departments %}
+                    <option value="{{ d }}">{{ d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="course_name">اسم المقرر *</label>
+                <input type="text" id="course_name" name="course_name" required>
+            </div>
+            <div class="form-group">
+                <label for="crn">الرقم المرجعي (CRN) *</label>
+                <input type="text" id="crn" name="crn" required>
+            </div>
+            <div class="form-group">
+                <label for="section_code">الشعبة *</label>
+                <input type="text" id="section_code" name="section_code" required placeholder="مثال: 01">
+            </div>
+            <div class="form-group">
+                <label for="gender">الجنس</label>
+                <select id="gender" name="gender">
+                    <option value="">—</option>
+                    <option value="male">ذكر</option>
+                    <option value="female">أنثى</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="age">العمر</label>
+                <input type="number" id="age" name="age" min="16" max="80">
+            </div>
+            <div class="form-group">
+                <label for="skills">المهارات</label>
+                <textarea id="skills" name="skills" rows="2" placeholder="اختياري"></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">إضافة الطالب</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="dashboard-section">
+        <h2>قائمة الطلاب والإسناد</h2>
+        {% if students %}
+        <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>البريد</th>
+                    <th>القسم</th>
+                    <th>المشرف المسند</th>
+                    <th>المقرر / الرقم / الشعبة</th>
+                    <th>الحالة</th>
+                    <th>تغيير الإسناد</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in students %}
+                <tr class="{% if s.account_status == 'suspended' %}row-suspended{% endif %}">
+                    <td>{{ s.name }}</td>
+                    <td dir="ltr">{{ s.email }}</td>
+                    <td>{{ s.department or '-' }}</td>
+                    <td>{{ s.assigned_supervisor_name or '—' }}</td>
+                    <td><small>{{ s.course_name or '-' }} / {{ s.crn or '-' }} / {{ s.section_code or '-' }}</small></td>
+                    <td>
+                        {% if s.account_status == 'suspended' %}
+                        <span class="status-badge status-rejected">معلّق</span>
+                        {% else %}
+                        <span class="status-badge status-accepted">نشط</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin_student_assign', student_pk=s.student_id) }}" class="assign-inline-form">
+                            <select name="supervisor_id" class="assign-select">
+                                <option value="">إلغاء الإسناد</option>
+                                {% for sup in supervisors_dd %}
+                                <option value="{{ sup.supervisor_id }}" {% if s.assigned_supervisor_id == sup.supervisor_id %}selected{% endif %}>{{ sup.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-info btn-sm">حفظ</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p>لا يوجد طلاب مسجّلون بعد.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

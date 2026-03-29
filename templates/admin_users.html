@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}كل المستخدمين - إدارة{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <h1>جميع المستخدمين</h1>
+        <p class="muted">{{ college_name }}</p>
+        <nav class="admin-subnav">
+            <a href="{{ url_for('admin_supervisors') }}" class="btn btn-secondary btn-sm">المشرفون</a>
+            <a href="{{ url_for('admin_students') }}" class="btn btn-secondary btn-sm">الطلاب</a>
+        </nav>
+    </div>
+
+    <div class="dashboard-section">
+        <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>الاسم</th>
+                    <th>البريد</th>
+                    <th>الجوال</th>
+                    <th>الدور</th>
+                    <th>القسم / ملاحظة</th>
+                    <th>الحالة</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr class="{% if u.account_status == 'suspended' %}row-suspended{% endif %}">
+                    <td>{{ u.id }}</td>
+                    <td>{{ u.name }}</td>
+                    <td dir="ltr">{{ u.email }}</td>
+                    <td>{{ u.phone or '—' }}</td>
+                    <td>
+                        {% if u.role == 'student' %}طالب
+                        {% elif u.role == 'supervisor' %}مشرف
+                        {% elif u.role == 'company' %}جهة
+                        {% elif u.role == 'admin' %}مدير
+                        {% else %}{{ u.role }}{% endif %}
+                    </td>
+                    <td>{{ u.department or '—' }}</td>
+                    <td>
+                        {% if u.account_status == 'suspended' %}
+                        <span class="status-badge status-rejected">معلّق</span>
+                        {% else %}
+                        <span class="status-badge status-accepted">نشط</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
