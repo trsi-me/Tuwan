@@ -3,6 +3,7 @@
 import os
 import sqlite3
 from functools import wraps
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
@@ -14,7 +15,7 @@ from flask import (
 from config import (
     SECRET_KEY, UPLOAD_FOLDER, ALLOWED_EXTENSIONS,
     MAX_CONTENT_LENGTH, ASSETS_DIR, AVATAR_FOLDER,
-    ALLOWED_AVATAR_EXTENSIONS
+    ALLOWED_AVATAR_EXTENSIONS, ASSET_VERSION,
 )
 from constants import (
     SAUDI_MINISTRIES,
@@ -31,17 +32,55 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 app.config['AVATAR_FOLDER'] = AVATAR_FOLDER
 
+# Render (وجميع البروكسيات): بدون هذا request.is_secure يبقى False فيعطي روابط http
+# وSafari على الجوال يتعامل مع كوكي الجلسة بصرامة أكبر من Edge على اللابتوب.
+_on_render = bool(os.environ.get('RENDER'))
+_trust_proxy = os.environ.get('TRUST_PROXY', '').lower() in ('1', 'true', 'yes') or _on_render
+if _trust_proxy:
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1
+    )
+
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_PATH'] = '/'
+_session_secure = os.environ.get('SESSION_COOKIE_SECURE', '').lower() in (
+    '1',
+    'true',
+    'yes',
+)
+# على Render الخدمة HTTPS دائماً — كوكي بدون Secure قد لا يُعتمد على Safari iOS
+if _on_render:
+    _session_secure = True
+app.config['SESSION_COOKIE_SECURE'] = _session_secure
+if _on_render:
+    app.config['PREFERRED_URL_SCHEME'] = 'https'
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(AVATAR_FOLDER, exist_ok=True)
 
 init_db()
 seed_default_users(generate_password_hash)
 
+
+@app.context_processor
+def inject_asset_version():
+    return {'asset_version': ASSET_VERSION}
+
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def allowed_avatar_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_AVATAR_EXTENSIONS
+
+
+def _normalize_email(email):
+    """Strip + lowercase so login matches registration across browsers (Safari often varies casing)."""
+    if not email:
+        return ''
+    return email.strip().lower()
+
 
 def login_required(role=None):
     def decorator(f):
@@ -269,7 +308,7 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form.get('email', '').strip()
+        email = _normalize_email(request.form.get('email'))
         password = request.form.get('password', '')
         
         if not email or not password:
@@ -278,7 +317,7 @@ def login():
         
         conn = get_db_connection()
         user = conn.execute(
-            'SELECT * FROM users WHERE email = ?', (email,)
+            'SELECT * FROM users WHERE LOWER(TRIM(email)) = ?', (email,)
         ).fetchone()
         conn.close()
         
@@ -306,7 +345,7 @@ def logout():
 def register_student():
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
-        email = request.form.get('email', '').strip()
+        email = _normalize_email(request.form.get('email'))
         password = request.form.get('password', '')
         phone = request.form.get('phone', '').strip()
         department = request.form.get('department', '').strip()
@@ -332,7 +371,9 @@ def register_student():
             )
         
         conn = get_db_connection()
-        existing = conn.execute('SELECT id FROM users WHERE email = ?', (email,)).fetchone()
+        existing = conn.execute(
+            'SELECT id FROM users WHERE LOWER(TRIM(email)) = ?', (email,)
+        ).fetchone()
         if existing:
             conn.close()
             flash('البريد الإلكتروني مسجل مسبقاً', 'error')
@@ -381,7 +422,7 @@ def register_student():
 def register_company():
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
-        email = request.form.get('email', '').strip()
+        email = _normalize_email(request.form.get('email'))
         password = request.form.get('password', '')
         phone = request.form.get('phone', '').strip()
         department = request.form.get('department', '').strip()
@@ -412,7 +453,9 @@ def register_company():
             )
         
         conn = get_db_connection()
-        existing = conn.execute('SELECT id FROM users WHERE email = ?', (email,)).fetchone()
+        existing = conn.execute(
+            'SELECT id FROM users WHERE LOWER(TRIM(email)) = ?', (email,)
+        ).fetchone()
         if existing:
             conn.close()
             flash('البريد الإلكتروني مسجل مسبقاً', 'error')
@@ -448,7 +491,7 @@ def register_company():
 def register_supervisor():
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
-        email = request.form.get('email', '').strip()
+        email = _normalize_email(request.form.get('email'))
         password = request.form.get('password', '')
         department = request.form.get('department', '').strip()
         gender = request.form.get('gender', '').strip()
@@ -473,7 +516,9 @@ def register_supervisor():
             )
         
         conn = get_db_connection()
-        existing = conn.execute('SELECT id FROM users WHERE email = ?', (email,)).fetchone()
+        existing = conn.execute(
+            'SELECT id FROM users WHERE LOWER(TRIM(email)) = ?', (email,)
+        ).fetchone()
         if existing:
             conn.close()
             flash('البريد الإلكتروني مسجل مسبقاً', 'error')
@@ -971,7 +1016,7 @@ def admin_supervisors():
 @login_required(role='admin')
 def admin_supervisor_add():
     name = request.form.get('name', '').strip()
-    email = request.form.get('email', '').strip()
+    email = _normalize_email(request.form.get('email'))
     password = request.form.get('password', '')
     phone = request.form.get('phone', '').strip()
     department = request.form.get('department', '').strip()
@@ -983,7 +1028,9 @@ def admin_supervisor_add():
         flash('القسم غير صالح', 'error')
         return redirect(url_for('admin_supervisors'))
     conn = get_db_connection()
-    if conn.execute('SELECT id FROM users WHERE email = ?', (email,)).fetchone():
+    if conn.execute(
+        'SELECT id FROM users WHERE LOWER(TRIM(email)) = ?', (email,)
+    ).fetchone():
         conn.close()
         flash('البريد الإلكتروني مستخدم مسبقاً', 'error')
         return redirect(url_for('admin_supervisors'))
@@ -1032,7 +1079,7 @@ def admin_students():
 @login_required(role='admin')
 def admin_student_add():
     name = request.form.get('name', '').strip()
-    email = request.form.get('email', '').strip()
+    email = _normalize_email(request.form.get('email'))
     password = request.form.get('password', '')
     phone = request.form.get('phone', '').strip()
     department = request.form.get('department', '').strip()
@@ -1054,7 +1101,9 @@ def admin_student_add():
         flash('يرجى اختيار القسم والتخصص من القائمة المعتمدة', 'error')
         return redirect(url_for('admin_students'))
     conn = get_db_connection()
-    if conn.execute('SELECT id FROM users WHERE email = ?', (email,)).fetchone():
+    if conn.execute(
+        'SELECT id FROM users WHERE LOWER(TRIM(email)) = ?', (email,)
+    ).fetchone():
         conn.close()
         flash('البريد الإلكتروني مستخدم مسبقاً', 'error')
         return redirect(url_for('admin_students'))
@@ -1151,7 +1200,7 @@ def supervisor_add_student():
         return redirect(url_for('dashboard_supervisor'))
     supervisor_pk = sup['id']
     name = request.form.get('name', '').strip()
-    email = request.form.get('email', '').strip()
+    email = _normalize_email(request.form.get('email'))
     password = request.form.get('password', '')
     phone = request.form.get('phone', '').strip()
     department = request.form.get('department', '').strip()
@@ -1169,7 +1218,9 @@ def supervisor_add_student():
         flash('يرجى اختيار القسم والتخصص من القائمة', 'error')
         return redirect(url_for('dashboard_supervisor'))
     conn = get_db_connection()
-    if conn.execute('SELECT id FROM users WHERE email = ?', (email,)).fetchone():
+    if conn.execute(
+        'SELECT id FROM users WHERE LOWER(TRIM(email)) = ?', (email,)
+    ).fetchone():
         conn.close()
         flash('البريد مستخدم مسبقاً', 'error')
         return redirect(url_for('dashboard_supervisor'))
@@ -1226,7 +1277,7 @@ def admin_supervisor_update(supervisor_pk):
         flash('المشرف غير موجود', 'error')
         return redirect(url_for('admin_supervisors'))
     name = request.form.get('name', '').strip()
-    email = request.form.get('email', '').strip()
+    email = _normalize_email(request.form.get('email'))
     phone = request.form.get('phone', '').strip()
     department = request.form.get('department', '').strip()
     gender = request.form.get('gender', '').strip()
@@ -1239,7 +1290,9 @@ def admin_supervisor_update(supervisor_pk):
         return redirect(url_for('admin_supervisor_detail', supervisor_pk=supervisor_pk))
     uid = row['user_id']
     conn = get_db_connection()
-    other = conn.execute('SELECT id FROM users WHERE email = ? AND id != ?', (email, uid)).fetchone()
+    other = conn.execute(
+        'SELECT id FROM users WHERE LOWER(TRIM(email)) = ? AND id != ?', (email, uid)
+    ).fetchone()
     if other:
         conn.close()
         flash('البريد الإلكتروني مستخدم لحساب آخر', 'error')

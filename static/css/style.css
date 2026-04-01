@@ -430,12 +430,6 @@ body {
     text-decoration: underline;
 }
 
-.demo-accounts {
-    font-size: 0.9rem;
-    color: #666;
-    margin-bottom: 0.25rem;
-}
-
 .nav-avatar {
     width: 36px;
     height: 36px;
@@ -480,15 +474,6 @@ body {
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid var(--border-color);
-}
-
-.demo-accounts-list {
-    font-size: 0.85rem;
-    color: var(--primary);
-    margin-bottom: 1rem;
-    direction: ltr;
-    text-align: center;
-    word-break: break-all;
 }
 
 /* صفحة تسجيل الدخول */

@@ -1,20 +1,43 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 _model = None
+
+# على Render (RENDER=1) تحميل sentence-transformers يتجاوز مهلة Gunicorn ويسبب OOM.
+# ENABLE_AI_EMBEDDINGS=1 لتفعيل المطابقة الدلالية؛ 0 لتعطيلها حتى محلياً.
+def _embeddings_enabled():
+    explicit = os.environ.get('ENABLE_AI_EMBEDDINGS', '').strip().lower()
+    if explicit in ('0', 'false', 'no', 'off'):
+        return False
+    if explicit in ('1', 'true', 'yes', 'on'):
+        return True
+    if os.environ.get('RENDER'):
+        return False
+    return True
+
 
 def _get_model():
     global _model
-    if _model is None:
-        try:
-            from sentence_transformers import SentenceTransformer
-            import os
-            trained = os.path.join(os.path.dirname(__file__), 'tawun-match-model')
-            if os.path.isdir(trained):
-                _model = SentenceTransformer(trained)
-            else:
-                _model = SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
-        except Exception:
-            _model = False
+    if _model is False:
+        return None
+    if _model is not None:
+        return _model
+    if not _embeddings_enabled():
+        _model = False
+        return None
+    try:
+        from sentence_transformers import SentenceTransformer
+
+        trained = os.path.join(os.path.dirname(__file__), 'tawun-match-model')
+        if os.path.isdir(trained):
+            _model = SentenceTransformer(trained)
+        else:
+            _model = SentenceTransformer(
+                'sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2'
+            )
+    except Exception:
+        _model = False
     return _model if _model else None
 
 def _student_text(student):
