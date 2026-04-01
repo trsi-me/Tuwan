@@ -135,19 +135,19 @@ def seed_default_users(password_hash_fn):
     if not cursor.execute('SELECT id FROM users WHERE email = ?', ('student@tawun.com',)).fetchone():
         cursor.execute(
             'INSERT INTO users (name, email, password, phone, role, department) VALUES (?, ?, ?, ?, ?, ?)',
-            ('أحمد الطالب', 'student@tawun.com', default_password, '0501234567', 'student', 'صحافة والإعلام الرقمي')
+            ('أحمد الطالب', 'student@tawun.com', default_password, '0501234567', 'student', 'صحافة و الاعلام الرقمي')
         )
         user_id = cursor.lastrowid
         cursor.execute(
             'INSERT INTO students (user_id, gender, major, age, skills, course_name, crn, section_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            (user_id, 'male', 'صحافة والإعلام الرقمي', 22, 'كتابة صحفية، وسائل التواصل', 'مقدمة في الصحافة الرقمية', 'CS101', '01')
+            (user_id, 'male', 'صحافة و الاعلام الرقمي', 22, 'كتابة صحفية، وسائل التواصل', 'مقدمة في الصحافة الرقمية', 'CS101', '01')
         )
     
     company_user = cursor.execute('SELECT id FROM users WHERE email = ?', ('company@tawun.com',)).fetchone()
     if not company_user:
         cursor.execute(
             'INSERT INTO users (name, email, password, phone, role, department) VALUES (?, ?, ?, ?, ?, ?)',
-            ('شركة/جهة حكومية التدريبية', 'company@tawun.com', default_password, '0507654321', 'company', 'صحافة والإعلام الرقمي')
+            ('شركة/جهة حكومية التدريبية', 'company@tawun.com', default_password, '0507654321', 'company', 'صحافة و الاعلام الرقمي')
         )
         user_id = cursor.lastrowid
         cursor.execute(
@@ -167,12 +167,12 @@ def seed_default_users(password_hash_fn):
     if not cursor.execute('SELECT id FROM users WHERE email = ?', ('supervisor@tawun.com',)).fetchone():
         cursor.execute(
             'INSERT INTO users (name, email, password, phone, role, department, gender) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            ('د. محمد المشرف', 'supervisor@tawun.com', default_password, '', 'supervisor', 'صحافة والإعلام الرقمي', 'male')
+            ('د. محمد المشرف', 'supervisor@tawun.com', default_password, '', 'supervisor', 'صحافة و الاعلام الرقمي', 'male')
         )
         user_id = cursor.lastrowid
         cursor.execute(
             'INSERT INTO supervisors (user_id, department) VALUES (?, ?)',
-            (user_id, 'صحافة والإعلام الرقمي')
+            (user_id, 'صحافة و الاعلام الرقمي')
         )
         sup_row = cursor.execute('SELECT id FROM supervisors WHERE user_id = ?', (user_id,)).fetchone()
         if sup_row:
@@ -268,11 +268,11 @@ def seed_default_applicants(cursor, password_hash_fn):
     company_id = company_row['id']
     
     extra_students = [
-        ('سارة أحمد', 'sara@tawun.com', '0501112233', 'female', 'إنتاج المرئي والمسموع', 'إنتاج المرئي والمسموع', 21, 'مونتاج، تصوير'),
+        ('سارة أحمد', 'sara@tawun.com', '0501112233', 'female', 'انتاج المرئي و المسموع', 'انتاج المرئي و المسموع', 21, 'مونتاج، تصوير'),
         ('خالد العتيبي', 'khalid@tawun.com', '0502223344', 'male', 'الاتصال التسويقي', 'الاتصال التسويقي', 23, 'حملات، محتوى'),
         ('نورة السعيد', 'noura@tawun.com', '0503334455', 'female', 'علاقات عامة', 'علاقات عامة', 20, 'فعاليات، تواصل'),
-        ('عمر الشمري', 'omar@tawun.com', '0504445566', 'male', 'صحافة والإعلام الرقمي', 'صحافة والإعلام الرقمي', 22, 'صحافة، تحرير'),
-        ('فاطمة القحطاني', 'fatima@tawun.com', '0505556677', 'female', 'إنتاج المرئي والمسموع', 'إنتاج المرئي والمسموع', 21, 'إخراج، صوت'),
+        ('عمر الشمري', 'omar@tawun.com', '0504445566', 'male', 'صحافة و الاعلام الرقمي', 'صحافة و الاعلام الرقمي', 22, 'صحافة، تحرير'),
+        ('فاطمة القحطاني', 'fatima@tawun.com', '0505556677', 'female', 'انتاج المرئي و المسموع', 'انتاج المرئي و المسموع', 21, 'إخراج، صوت'),
     ]
     
     statuses = ['pending', 'pending', 'accepted', 'accepted', 'rejected']
