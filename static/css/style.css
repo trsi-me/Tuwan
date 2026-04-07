@@ -35,6 +35,9 @@ body {
     color: var(--text-color);
     line-height: 1.6;
     direction: rtl;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 /* الهيدر */
@@ -285,7 +288,270 @@ body {
 
 .main-content {
     padding: 2.5rem 0 3rem;
-    min-height: calc(100vh - 200px);
+    flex: 1 0 auto;
+}
+
+/* الفوتر */
+.site-footer {
+    flex-shrink: 0;
+    background: linear-gradient(180deg, #0a3d16 0%, var(--header-bg) 45%, #063010 100%);
+    color: rgba(255, 255, 255, 0.95);
+    margin-top: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.footer-inner {
+    padding: 2.75rem 2rem 0;
+    max-width: 1200px;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 1.15fr repeat(3, 1fr);
+    gap: 2rem 2.5rem;
+    padding-bottom: 2rem;
+}
+
+.footer-brand {
+    padding-left: 0.5rem;
+}
+
+.footer-logo-link {
+    display: inline-block;
+    margin-bottom: 0.75rem;
+    line-height: 0;
+}
+
+.footer-logo {
+    height: 52px;
+    width: auto;
+    filter: brightness(1.05);
+}
+
+.footer-brand-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 0.35rem;
+    color: #fff;
+}
+
+.footer-college {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.88);
+    margin: 0 0 0.85rem;
+    line-height: 1.45;
+    max-width: 18rem;
+}
+
+.footer-lead {
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: rgba(255, 255, 255, 0.82);
+    margin: 0;
+    max-width: 22rem;
+}
+
+.footer-heading {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
+    color: #fff;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.footer-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.footer-links li {
+    margin-bottom: 0.65rem;
+}
+
+.footer-links a {
+    color: rgba(255, 255, 255, 0.88);
+    text-decoration: none;
+    font-size: 0.98rem;
+    font-weight: 600;
+    transition: color 0.2s, padding-inline-start 0.2s;
+    display: inline-block;
+}
+
+.footer-links a:hover {
+    color: #fff;
+    padding-inline-start: 0.25rem;
+}
+
+.footer-note {
+    font-size: 0.92rem;
+    line-height: 1.75;
+    color: rgba(255, 255, 255, 0.82);
+    margin: 0 0 0.85rem;
+}
+
+.footer-note-muted {
+    font-size: 0.86rem;
+    color: rgba(255, 255, 255, 0.65);
+    margin-bottom: 0;
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 1.15rem 0 1.5rem;
+    text-align: center;
+}
+
+.footer-legal-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem 0.5rem;
+    margin-bottom: 0.85rem;
+}
+
+.footer-legal-nav a {
+    color: rgba(255, 255, 255, 0.88);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.footer-legal-nav a:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+.footer-legal-sep {
+    color: rgba(255, 255, 255, 0.45);
+    user-select: none;
+}
+
+.footer-copy {
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.72);
+    margin: 0;
+}
+
+/* صفحات قانونية (خصوصية، شروط، إخلاء مسؤولية) */
+.legal-page {
+    padding: 2rem 0 3rem;
+}
+
+.legal-content {
+    max-width: 820px;
+    margin: 0 auto;
+}
+
+.legal-content > header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.legal-content h1 {
+    font-size: 1.85rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0 0 0.5rem;
+    line-height: 1.35;
+}
+
+.legal-meta {
+    font-size: 0.92rem;
+    color: #666;
+    margin: 0;
+}
+
+.legal-content section {
+    margin-bottom: 1.75rem;
+}
+
+.legal-content h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0 0 0.75rem;
+    padding-top: 0.25rem;
+}
+
+.legal-content h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 1rem 0 0.5rem;
+    color: #333;
+}
+
+.legal-content p,
+.legal-content li {
+    font-size: 1rem;
+    line-height: 1.85;
+    color: #333;
+}
+
+.legal-content p {
+    margin: 0 0 0.85rem;
+}
+
+.legal-content ul,
+.legal-content ol {
+    margin: 0 0 1rem;
+    padding-right: 1.35rem;
+}
+
+.legal-content li {
+    margin-bottom: 0.45rem;
+}
+
+.legal-content .legal-lead {
+    font-size: 1.05rem;
+    color: #444;
+    margin-bottom: 1.25rem;
+}
+
+.legal-back {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.legal-back a {
+    color: var(--primary);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.legal-back a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 992px) {
+    .footer-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .footer-brand {
+        grid-column: 1 / -1;
+        padding-left: 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .footer-inner {
+        padding: 2rem 1rem 0;
+    }
+
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 1.75rem;
+    }
+
+    .footer-logo {
+        height: 46px;
+    }
 }
 
 /* الصفحة الرئيسية */

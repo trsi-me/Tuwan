@@ -2,6 +2,7 @@
 
 import os
 import sqlite3
+from datetime import datetime
 from functools import wraps
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -270,7 +271,11 @@ def get_supervisor_sections_with_students(supervisor_pk):
 @app.context_processor
 def inject_current_user():
     user = get_user_data()
-    return dict(current_user=user, college_name=COLLEGE_NAME)
+    return dict(
+        current_user=user,
+        college_name=COLLEGE_NAME,
+        current_year=datetime.now().year,
+    )
 
 
 def get_all_training_supervisors_grouped():
@@ -973,6 +978,21 @@ def download_cv(filename):
 @app.route('/about')
 def about():
     return render_template('about.html')
+
+
+@app.route('/privacy')
+def privacy_policy():
+    return render_template('legal_privacy.html')
+
+
+@app.route('/terms')
+def terms_of_use():
+    return render_template('legal_terms.html')
+
+
+@app.route('/disclaimer')
+def legal_disclaimer():
+    return render_template('legal_disclaimer.html')
 
 
 def _get_supervisor_admin_row(supervisor_pk):

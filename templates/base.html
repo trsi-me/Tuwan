@@ -61,6 +61,59 @@
         {% block content %}{% endblock %}
     </main>
 
+    <footer class="site-footer" role="contentinfo">
+        <div class="footer-inner container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="{{ url_for('index') }}" class="footer-logo-link">
+                        <img src="{{ url_for('serve_assets', filename='images/Logo.png') }}" alt="شعار منصة تعاون" class="footer-logo" width="120">
+                    </a>
+                    <p class="footer-brand-title">منصة تعاون</p>
+                    {% if college_name %}
+                    <p class="footer-college">{{ college_name }}</p>
+                    {% endif %}
+                    <p class="footer-lead">ربط الطلاب بفرص التدريب التعاوني والجهات المعنية بسلاسة وأمان.</p>
+                </div>
+                <nav class="footer-col" aria-label="روابط سريعة">
+                    <h2 class="footer-heading">روابط سريعة</h2>
+                    <ul class="footer-links">
+                        <li><a href="{{ url_for('index') }}">الرئيسية</a></li>
+                        <li><a href="{{ url_for('about') }}">النبذة عن المنصة</a></li>
+                        {% if session.get('user_id') %}
+                        <li><a href="{{ url_for('dashboard') }}">لوحة التحكم</a></li>
+                        <li><a href="{{ url_for('profile') }}">الملف الشخصي</a></li>
+                        {% else %}
+                        <li><a href="{{ url_for('login') }}">تسجيل الدخول</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                <nav class="footer-col" aria-label="إنشاء حساب">
+                    <h2 class="footer-heading">إنشاء حساب</h2>
+                    <ul class="footer-links">
+                        <li><a href="{{ url_for('register_student') }}">تسجيل طالب</a></li>
+                        <li><a href="{{ url_for('register_company') }}">تسجيل شركة أو جهة</a></li>
+                        <li><a href="{{ url_for('register_supervisor') }}">تسجيل مشرف تدريب</a></li>
+                    </ul>
+                </nav>
+                <div class="footer-col footer-col-contact">
+                    <h2 class="footer-heading">معلومات</h2>
+                    <p class="footer-note">هذه المنصة مخصّصة لدعم التدريب التعاوني في إطار {{ college_name or 'الكلية' }}، وتسهيل التواصل بين الطلاب والمشرفين والجهات التدريبية.</p>
+                    <p class="footer-note footer-note-muted">للاستفسارات الإدارية أو التقنية، يُرجى التواصل عبر القنوات الرسمية للكلية.</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <nav class="footer-legal-nav" aria-label="الوثائق القانونية">
+                    <a href="{{ url_for('privacy_policy') }}">سياسة الخصوصية</a>
+                    <span class="footer-legal-sep" aria-hidden="true">·</span>
+                    <a href="{{ url_for('terms_of_use') }}">شروط الاستخدام</a>
+                    <span class="footer-legal-sep" aria-hidden="true">·</span>
+                    <a href="{{ url_for('legal_disclaimer') }}">إخلاء المسؤولية</a>
+                </nav>
+                <p class="footer-copy">© {{ current_year }} منصة تعاون{% if college_name %} — {{ college_name }}{% endif %}. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+
     <script src="{{ url_for('static', filename='js/main.js') }}?v={{ asset_version }}"></script>
     {% block scripts %}{% endblock %}
 </body>

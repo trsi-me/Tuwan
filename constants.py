@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-COLLEGE_NAME = 'كلية الاتصال و الاعلام'
+COLLEGE_NAME = 'كلية الاتصال والإعلام'
 
 FACULTY_DEPARTMENTS = [
     'صحافة و الاعلام الرقمي',
