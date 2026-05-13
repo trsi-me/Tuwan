@@ -16,3 +16,5 @@ AVATAR_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads', 'avatars')
 ALLOWED_AVATAR_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'webp'}
 MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5 MB
 MAX_AVATAR_SIZE = 2 * 1024 * 1024  # 2 MB
+# حد أقصى لنص رسالة المحادثة (حرف)
+MAX_CHAT_MESSAGE_LENGTH = int(os.environ.get('MAX_CHAT_MESSAGE_LENGTH', '8000'))

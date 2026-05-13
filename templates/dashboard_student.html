@@ -141,6 +141,7 @@
                     <th>الجهة</th>
                     <th>الحالة</th>
                     <th>التاريخ</th>
+                    <th>التواصل</th>
                 </tr>
             </thead>
             <tbody>
@@ -153,6 +154,9 @@
                         </span>
                     </td>
                     <td>{{ app.created_at[:10] if app.created_at else '-' }}</td>
+                    <td>
+                        <a class="btn btn-primary btn-sm" href="{{ url_for('messages_open_application', application_id=app.id) }}">محادثة</a>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}التواصل — منصة تعاون{% endblock %}
+
+{% block content %}
+<div class="container messages-page">
+    <div class="dashboard-header">
+        <h1>التواصل والمحادثات</h1>
+        <p class="muted">محادثات مرتبطة بطلبات التدريب: الطالب، الجهة (حكومية أو خاصة)، والمشرف الأكاديمي المختص.</p>
+    </div>
+
+    {% if not threads %}
+    <div class="dashboard-section">
+        <p>لا توجد محادثات بعد. افتح المحادثة من لوحة التحكم عند الطلب المقدَّم.</p>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">العودة للوحة التحكم</a>
+    </div>
+    {% else %}
+    <div class="table-wrapper chat-inbox-table">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    {% if viewer_role != 'student' %}
+                    <th>الطالب</th>
+                    {% endif %}
+                    {% if viewer_role != 'company' %}
+                    <th>الجهة</th>
+                    {% endif %}
+                    <th>حالة الطلب</th>
+                    <th>آخر رسالة</th>
+                    <th>تحديث</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in threads %}
+                <tr>
+                    {% if viewer_role != 'student' %}
+                    <td>{{ t.student_name }}</td>
+                    {% endif %}
+                    {% if viewer_role != 'company' %}
+                    <td>{{ t.company_name }}</td>
+                    {% endif %}
+                    <td>
+                        <span class="status-badge status-{{ t.app_status }}">
+                            {% if t.app_status == 'pending' %}قيد المراجعة{% elif t.app_status == 'accepted' %}مقبول{% else %}مرفوض{% endif %}
+                        </span>
+                    </td>
+                    <td class="chat-preview-cell">{{ (t.last_preview or '—')[:120] }}{% if t.last_preview and t.last_preview|length > 120 %}…{% endif %}</td>
+                    <td class="muted">{{ (t.last_at or t.updated_at or '')[:19] }}</td>
+                    <td><a class="btn btn-primary btn-sm" href="{{ url_for('messages_thread', conversation_id=t.conversation_id) }}">فتح المحادثة</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

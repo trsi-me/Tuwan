@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}محادثة — منصة تعاون{% endblock %}
+
+{% block content %}
+<div class="container messages-page">
+    <div class="chat-thread-header">
+        <a href="{{ url_for('messages_inbox') }}" class="btn btn-secondary btn-sm">← الرسائل</a>
+        <div class="chat-thread-titles">
+            <h1>محادثة التدريب</h1>
+            {% if meta %}
+            <p class="muted chat-participants">
+                <strong>{{ meta.student_name }}</strong>
+                <span aria-hidden="true"> · </span>
+                <strong>{{ meta.company_name }}</strong>
+                <span aria-hidden="true"> · </span>
+                حالة الطلب:
+                <span class="status-badge status-{{ meta.app_status }}">
+                    {% if meta.app_status == 'pending' %}قيد المراجعة{% elif meta.app_status == 'accepted' %}مقبول{% else %}مرفوض{% endif %}
+                </span>
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="chat-thread-layout">
+        <div class="chat-messages-scroll" id="chatScroll" data-conversation-id="{{ conversation_id }}" aria-live="polite">
+            <div class="chat-messages-inner" id="chatMessages">
+                {% for m in messages %}
+                <article class="chat-msg {% if m.sender_user_id == current_user_id %}chat-msg-own{% else %}chat-msg-other{% endif %}" data-msg-id="{{ m.id }}">
+                    <div class="chat-msg-meta">
+                        <span class="chat-msg-name">{{ m.sender_name }}</span>
+                        <span class="chat-msg-role">
+                            {% if m.sender_role == 'student' %}طالب{% elif m.sender_role == 'company' %}جهة{% elif m.sender_role == 'supervisor' %}مشرف أكاديمي{% else %}{{ m.sender_role }}{% endif %}
+                        </span>
+                        <time class="chat-msg-time" datetime="{{ m.created_at }}">{{ m.created_at }}</time>
+                    </div>
+                    <div class="chat-msg-body">{{ m.body }}</div>
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+
+        <form method="post" action="{{ url_for('messages_send', conversation_id=conversation_id) }}" class="chat-compose">
+            <label for="chatBody" class="sr-only">نص الرسالة</label>
+            <textarea id="chatBody" name="body" rows="3" maxlength="{{ max_chat_len }}" required placeholder="اكتب رسالتك هنا…"></textarea>
+            <div class="chat-compose-actions">
+                <button type="submit" class="btn btn-primary">إرسال</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var scroll = document.getElementById('chatScroll');
+  var inner = document.getElementById('chatMessages');
+  if (!scroll || !inner) return;
+  var pollUrl = {{ url_for('messages_poll', conversation_id=conversation_id)|tojson }};
+  var myId = {{ current_user_id|int }};
+
+  function scrollBottom() {
+    scroll.scrollTop = scroll.scrollHeight;
+  }
+  scrollBottom();
+
+  function roleLabel(role) {
+    if (role === 'student') return 'طالب';
+    if (role === 'company') return 'جهة';
+    if (role === 'supervisor') return 'مشرف أكاديمي';
+    return role || '';
+  }
+
+  function appendMessages(items) {
+    items.forEach(function (m) {
+      var art = document.createElement('article');
+      art.className = 'chat-msg ' + (m.sender_user_id === myId ? 'chat-msg-own' : 'chat-msg-other');
+      art.setAttribute('data-msg-id', m.id);
+      var meta = document.createElement('div');
+      meta.className = 'chat-msg-meta';
+      meta.innerHTML = '<span class="chat-msg-name"></span><span class="chat-msg-role"></span><time class="chat-msg-time"></time>';
+      meta.querySelector('.chat-msg-name').textContent = m.sender_name || '';
+      meta.querySelector('.chat-msg-role').textContent = roleLabel(m.sender_role);
+      meta.querySelector('.chat-msg-time').textContent = m.created_at || '';
+      var body = document.createElement('div');
+      body.className = 'chat-msg-body';
+      body.textContent = m.body || '';
+      art.appendChild(meta);
+      art.appendChild(body);
+      inner.appendChild(art);
+    });
+    if (items.length) scrollBottom();
+  }
+
+  function poll() {
+    var nodes = inner.querySelectorAll('[data-msg-id]');
+    var after = 0;
+    if (nodes.length) {
+      var last = nodes[nodes.length - 1];
+      after = parseInt(last.getAttribute('data-msg-id'), 10) || 0;
+    }
+    fetch(pollUrl + '?after=' + after, { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data && data.ok && data.messages && data.messages.length) appendMessages(data.messages);
+      })
+      .catch(function () {});
+  }
+  setInterval(poll, 6000);
+})();
+</script>
+{% endblock %}

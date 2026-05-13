@@ -127,6 +127,39 @@ def _migrate_schema(cursor):
     except sqlite3.OperationalError:
         pass
 
+    cursor.execute(
+        '''
+        CREATE TABLE IF NOT EXISTS conversations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            application_id INTEGER NOT NULL UNIQUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE
+        )
+        '''
+    )
+    cursor.execute(
+        '''
+        CREATE TABLE IF NOT EXISTS chat_messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            conversation_id INTEGER NOT NULL,
+            sender_user_id INTEGER NOT NULL,
+            body TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            extra_json TEXT,
+            FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
+            FOREIGN KEY (sender_user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+        '''
+    )
+    cursor.execute(
+        'CREATE INDEX IF NOT EXISTS idx_chat_messages_conv ON chat_messages(conversation_id)'
+    )
+    cursor.execute(
+        'CREATE INDEX IF NOT EXISTS idx_chat_messages_created ON chat_messages(created_at)'
+    )
+
+
 def seed_default_users(password_hash_fn):
     conn = get_db_connection()
     cursor = conn.cursor()

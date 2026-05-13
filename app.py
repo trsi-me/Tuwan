@@ -10,13 +10,14 @@ from werkzeug.utils import secure_filename
 
 from flask import (
     Flask, render_template, request, redirect, url_for,
-    flash, session, send_from_directory
+    flash, session, send_from_directory, jsonify,
 )
 
 from config import (
     SECRET_KEY, UPLOAD_FOLDER, ALLOWED_EXTENSIONS,
     MAX_CONTENT_LENGTH, ASSETS_DIR, AVATAR_FOLDER,
     ALLOWED_AVATAR_EXTENSIONS, ASSET_VERSION,
+    MAX_CHAT_MESSAGE_LENGTH,
 )
 from constants import (
     SAUDI_MINISTRIES,
@@ -96,6 +97,166 @@ def login_required(role=None):
             return f(*args, **kwargs)
         return decorated_function
     return decorator
+
+
+def login_required_roles(*roles):
+    allowed = set(roles)
+
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if 'user_id' not in session:
+                flash('يجب تسجيل الدخول أولاً', 'error')
+                return redirect(url_for('login'))
+            if session.get('role') not in allowed:
+                flash('غير مصرح لك بالوصول لهذه الصفحة', 'error')
+                return redirect(url_for('dashboard'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
+def user_may_access_application_chat(conn, user_id, role, application_id):
+    """طالب صاحب الطلب، أو جهة الطلب، أو مشرف مُسنَّد/مطابق للشعبة."""
+    row = conn.execute(
+        '''
+        SELECT a.id, st.user_id AS student_user_id, c.user_id AS company_user_id,
+               st.assigned_supervisor_id, st.crn, st.section_code
+        FROM applications a
+        JOIN students st ON a.student_id = st.id
+        JOIN companies c ON a.company_id = c.id
+        WHERE a.id = ?
+        ''',
+        (application_id,),
+    ).fetchone()
+    if not row:
+        return False
+    if role == 'student' and row['student_user_id'] == user_id:
+        return True
+    if role == 'company' and row['company_user_id'] == user_id:
+        return True
+    if role == 'supervisor':
+        sup = conn.execute(
+            'SELECT id FROM supervisors WHERE user_id = ?', (user_id,)
+        ).fetchone()
+        if not sup:
+            return False
+        sid = sup['id']
+        if row['assigned_supervisor_id'] == sid:
+            return True
+        crn, sec = row['crn'], row['section_code']
+        if crn and sec:
+            hit = conn.execute(
+                '''
+                SELECT 1 FROM supervisor_sections
+                WHERE supervisor_id = ? AND TRIM(crn) = TRIM(?) AND TRIM(section_code) = TRIM(?)
+                LIMIT 1
+                ''',
+                (sid, crn, sec),
+            ).fetchone()
+            return bool(hit)
+        return False
+    return False
+
+
+def user_may_access_conversation(conn, user_id, role, conversation_id):
+    row = conn.execute(
+        'SELECT application_id FROM conversations WHERE id = ?', (conversation_id,)
+    ).fetchone()
+    if not row:
+        return False
+    return user_may_access_application_chat(conn, user_id, role, row['application_id'])
+
+
+def _get_or_create_conversation_id(conn, application_id):
+    row = conn.execute(
+        'SELECT id FROM conversations WHERE application_id = ?', (application_id,)
+    ).fetchone()
+    if row:
+        return row['id']
+    conn.execute(
+        'INSERT INTO conversations (application_id) VALUES (?)', (application_id,)
+    )
+    row = conn.execute(
+        'SELECT id FROM conversations WHERE application_id = ?', (application_id,)
+    ).fetchone()
+    return row['id'] if row else None
+
+
+def _fetch_inbox_rows(conn, user_id, role):
+    if role == 'student':
+        return conn.execute(
+            '''
+            SELECT c.id AS conversation_id, c.application_id, c.updated_at, a.status AS app_status,
+                   uc.name AS company_name, us.name AS student_name,
+                   (SELECT body FROM chat_messages m WHERE m.conversation_id = c.id
+                    ORDER BY m.id DESC LIMIT 1) AS last_preview,
+                   (SELECT created_at FROM chat_messages m WHERE m.conversation_id = c.id
+                    ORDER BY m.id DESC LIMIT 1) AS last_at
+            FROM conversations c
+            JOIN applications a ON c.application_id = a.id
+            JOIN students st ON a.student_id = st.id
+            JOIN users us ON st.user_id = us.id
+            JOIN companies co ON a.company_id = co.id
+            JOIN users uc ON co.user_id = uc.id
+            WHERE st.user_id = ?
+            ORDER BY datetime(c.updated_at) DESC, c.id DESC
+            ''',
+            (user_id,),
+        ).fetchall()
+    if role == 'company':
+        return conn.execute(
+            '''
+            SELECT c.id AS conversation_id, c.application_id, c.updated_at, a.status AS app_status,
+                   uc.name AS company_name, us.name AS student_name,
+                   (SELECT body FROM chat_messages m WHERE m.conversation_id = c.id
+                    ORDER BY m.id DESC LIMIT 1) AS last_preview,
+                   (SELECT created_at FROM chat_messages m WHERE m.conversation_id = c.id
+                    ORDER BY m.id DESC LIMIT 1) AS last_at
+            FROM conversations c
+            JOIN applications a ON c.application_id = a.id
+            JOIN students st ON a.student_id = st.id
+            JOIN users us ON st.user_id = us.id
+            JOIN companies co ON a.company_id = co.id
+            JOIN users uc ON co.user_id = uc.id
+            WHERE co.user_id = ?
+            ORDER BY datetime(c.updated_at) DESC, c.id DESC
+            ''',
+            (user_id,),
+        ).fetchall()
+    if role == 'supervisor':
+        return conn.execute(
+            '''
+            SELECT c.id AS conversation_id, c.application_id, c.updated_at, a.status AS app_status,
+                   uc.name AS company_name, us.name AS student_name,
+                   (SELECT body FROM chat_messages m WHERE m.conversation_id = c.id
+                    ORDER BY m.id DESC LIMIT 1) AS last_preview,
+                   (SELECT created_at FROM chat_messages m WHERE m.conversation_id = c.id
+                    ORDER BY m.id DESC LIMIT 1) AS last_at
+            FROM conversations c
+            JOIN applications a ON c.application_id = a.id
+            JOIN students st ON a.student_id = st.id
+            JOIN users us ON st.user_id = us.id
+            JOIN companies co ON a.company_id = co.id
+            JOIN users uc ON co.user_id = uc.id
+            JOIN supervisors sup ON sup.user_id = ?
+            WHERE st.assigned_supervisor_id = sup.id
+               OR EXISTS (
+                   SELECT 1 FROM supervisor_sections ss
+                   WHERE ss.supervisor_id = sup.id
+                     AND TRIM(ss.crn) = TRIM(st.crn)
+                     AND TRIM(ss.section_code) = TRIM(st.section_code)
+               )
+            ORDER BY datetime(c.updated_at) DESC, c.id DESC
+            ''',
+            (user_id,),
+        ).fetchall()
+    return []
+
+
+def supervisor_app_row_can_chat(conn, supervisor_user_id, application_id):
+    """لعرض زر المحادثة في لوحة المشرف حسب نفس قواعد الوصول."""
+    return user_may_access_application_chat(conn, supervisor_user_id, 'supervisor', application_id)
 
 def get_user_data():
     if 'user_id' not in session:
@@ -688,7 +849,12 @@ def dashboard_supervisor():
     pending_apps = [a for a in apps_list if a['status'] == 'pending']
     accepted_apps = [a for a in apps_list if a['status'] == 'accepted']
     rejected_apps = [a for a in apps_list if a['status'] == 'rejected']
-    
+
+    uid = session['user_id']
+    for lst in (pending_apps, accepted_apps, rejected_apps):
+        for a in lst:
+            a['can_chat'] = supervisor_app_row_can_chat(conn, uid, a['id'])
+
     sections_with_students = get_supervisor_sections_with_students(supervisor_data['id'])
     sup_males, sup_females, sup_other = get_all_training_supervisors_grouped()
     assigned_students = get_assigned_students_for_supervisor(supervisor_data['id'])
@@ -1422,6 +1588,147 @@ def delete_supervisor_section(sec_id):
         flash('تم حذف السجل', 'info')
     conn.close()
     return redirect(url_for('dashboard_supervisor'))
+
+
+@app.route('/messages')
+@login_required_roles('student', 'company', 'supervisor')
+def messages_inbox():
+    uid = session['user_id']
+    role = session['role']
+    conn = get_db_connection()
+    rows = _fetch_inbox_rows(conn, uid, role)
+    conn.close()
+    return render_template(
+        'messages_inbox.html',
+        threads=[dict(r) for r in rows],
+        viewer_role=role,
+    )
+
+
+@app.route('/messages/application/<int:application_id>')
+@login_required_roles('student', 'company', 'supervisor')
+def messages_open_application(application_id):
+    conn = get_db_connection()
+    if not user_may_access_application_chat(
+        conn, session['user_id'], session['role'], application_id
+    ):
+        conn.close()
+        flash('غير مصرح بفتح هذه المحادثة', 'error')
+        return redirect(url_for('dashboard'))
+    cid = _get_or_create_conversation_id(conn, application_id)
+    conn.commit()
+    conn.close()
+    if not cid:
+        flash('تعذر إنشاء المحادثة', 'error')
+        return redirect(url_for('dashboard'))
+    return redirect(url_for('messages_thread', conversation_id=cid))
+
+
+@app.route('/messages/thread/<int:conversation_id>')
+@login_required_roles('student', 'company', 'supervisor')
+def messages_thread(conversation_id):
+    conn = get_db_connection()
+    if not user_may_access_conversation(conn, session['user_id'], session['role'], conversation_id):
+        conn.close()
+        flash('غير مصرح بعرض هذه المحادثة', 'error')
+        return redirect(url_for('messages_inbox'))
+    meta = conn.execute(
+        '''
+        SELECT a.id AS application_id, a.status AS app_status,
+               us.name AS student_name, uc.name AS company_name
+        FROM conversations conv
+        JOIN applications a ON conv.application_id = a.id
+        JOIN students st ON a.student_id = st.id
+        JOIN users us ON st.user_id = us.id
+        JOIN companies co ON a.company_id = co.id
+        JOIN users uc ON co.user_id = uc.id
+        WHERE conv.id = ?
+        ''',
+        (conversation_id,),
+    ).fetchone()
+    msgs = conn.execute(
+        '''
+        SELECT m.id, m.body, m.created_at, m.extra_json, m.sender_user_id, u.name AS sender_name, u.role AS sender_role
+        FROM chat_messages m
+        JOIN users u ON m.sender_user_id = u.id
+        WHERE m.conversation_id = ?
+        ORDER BY m.id ASC
+        ''',
+        (conversation_id,),
+    ).fetchall()
+    conn.close()
+    return render_template(
+        'messages_thread.html',
+        conversation_id=conversation_id,
+        meta=dict(meta) if meta else {},
+        messages=[dict(r) for r in msgs],
+        current_user_id=session['user_id'],
+        max_chat_len=MAX_CHAT_MESSAGE_LENGTH,
+    )
+
+
+@app.route('/messages/thread/<int:conversation_id>/send', methods=['POST'])
+@login_required_roles('student', 'company', 'supervisor')
+def messages_send(conversation_id):
+    body = (request.form.get('body') or '').strip()
+    if not body:
+        flash('يرجى كتابة نص الرسالة', 'error')
+        return redirect(url_for('messages_thread', conversation_id=conversation_id))
+    if len(body) > MAX_CHAT_MESSAGE_LENGTH:
+        flash(f'الرسالة أطول من الحد المسموح ({MAX_CHAT_MESSAGE_LENGTH} حرفاً)', 'error')
+        return redirect(url_for('messages_thread', conversation_id=conversation_id))
+    conn = get_db_connection()
+    if not user_may_access_conversation(conn, session['user_id'], session['role'], conversation_id):
+        conn.close()
+        flash('غير مصرح بإرسال رسالة هنا', 'error')
+        return redirect(url_for('messages_inbox'))
+    conn.execute(
+        '''
+        INSERT INTO chat_messages (conversation_id, sender_user_id, body)
+        VALUES (?, ?, ?)
+        ''',
+        (conversation_id, session['user_id'], body),
+    )
+    conn.execute(
+        "UPDATE conversations SET updated_at = datetime('now') WHERE id = ?",
+        (conversation_id,),
+    )
+    conn.commit()
+    conn.close()
+    return redirect(url_for('messages_thread', conversation_id=conversation_id))
+
+
+@app.route('/messages/thread/<int:conversation_id>/poll')
+@login_required_roles('student', 'company', 'supervisor')
+def messages_poll(conversation_id):
+    after_id = request.args.get('after', 0, type=int) or 0
+    conn = get_db_connection()
+    if not user_may_access_conversation(conn, session['user_id'], session['role'], conversation_id):
+        conn.close()
+        return jsonify({'ok': False, 'error': 'forbidden'}), 403
+    rows = conn.execute(
+        '''
+        SELECT m.id, m.body, m.created_at, m.sender_user_id, u.name AS sender_name, u.role AS sender_role
+        FROM chat_messages m
+        JOIN users u ON m.sender_user_id = u.id
+        WHERE m.conversation_id = ? AND m.id > ?
+        ORDER BY m.id ASC
+        ''',
+        (conversation_id, after_id),
+    ).fetchall()
+    conn.close()
+    out = [
+        {
+            'id': r['id'],
+            'body': r['body'],
+            'created_at': r['created_at'],
+            'sender_user_id': r['sender_user_id'],
+            'sender_name': r['sender_name'],
+            'sender_role': r['sender_role'],
+        }
+        for r in rows
+    ]
+    return jsonify({'ok': True, 'messages': out})
 
 
 if __name__ == '__main__':

@@ -298,6 +298,7 @@
                     <th>الطالب</th>
                     <th>الجهة</th>
                     <th>الحالة</th>
+                    <th>محادثة المنصة</th>
                 </tr>
             </thead>
             <tbody>
@@ -306,6 +307,11 @@
                     <td>{{ app.student_name }}</td>
                     <td>{{ app.company_name }}</td>
                     <td><span class="status-badge status-pending">قيد المراجعة</span></td>
+                    <td>
+                        {% if app.can_chat %}
+                        <a href="{{ url_for('messages_open_application', application_id=app.id) }}" class="btn btn-primary btn-sm">محادثة</a>
+                        {% else %}<span class="muted">—</span>{% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -325,6 +331,7 @@
                 <tr>
                     <th>الطالب</th>
                     <th>الجهة</th>
+                    <th>محادثة المنصة</th>
                 </tr>
             </thead>
             <tbody>
@@ -332,6 +339,11 @@
                 <tr>
                     <td>{{ app.student_name }}</td>
                     <td>{{ app.company_name }}</td>
+                    <td>
+                        {% if app.can_chat %}
+                        <a href="{{ url_for('messages_open_application', application_id=app.id) }}" class="btn btn-primary btn-sm">محادثة</a>
+                        {% else %}<span class="muted">—</span>{% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -351,6 +363,7 @@
                 <tr>
                     <th>الطالب</th>
                     <th>الجهة</th>
+                    <th>محادثة المنصة</th>
                 </tr>
             </thead>
             <tbody>
@@ -358,6 +371,11 @@
                 <tr>
                     <td>{{ app.student_name }}</td>
                     <td>{{ app.company_name }}</td>
+                    <td>
+                        {% if app.can_chat %}
+                        <a href="{{ url_for('messages_open_application', application_id=app.id) }}" class="btn btn-primary btn-sm">محادثة</a>
+                        {% else %}<span class="muted">—</span>{% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

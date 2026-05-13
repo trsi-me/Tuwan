@@ -47,7 +47,8 @@
                     <th>الجوال</th>
                     <th>التخصص</th>
                     <th>السيرة الذاتية</th>
-                    <th>إجراءات</th>
+                    <th>الإجراءات</th>
+                    <th>محادثة المنصة</th>
                 </tr>
             </thead>
             <tbody>
@@ -70,8 +71,11 @@
                             <form method="POST" action="{{ url_for('reject_application', app_id=app.id) }}" style="display:inline">
                                 <button type="submit" class="btn btn-danger">رفض</button>
                             </form>
-                            <a href="mailto:{{ app.email }}" class="btn btn-secondary">التواصل</a>
+                            <a href="mailto:{{ app.email }}" class="btn btn-secondary">بريد</a>
                         </div>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('messages_open_application', application_id=app.id) }}" class="btn btn-primary btn-sm">محادثة</a>
                     </td>
                 </tr>
                 {% endfor %}
@@ -94,7 +98,8 @@
                     <th>الجوال</th>
                     <th>التخصص</th>
                     <th>السيرة الذاتية</th>
-                    <th>إجراءات</th>
+                    <th>الإجراءات</th>
+                    <th>محادثة المنصة</th>
                 </tr>
             </thead>
             <tbody>
@@ -117,8 +122,11 @@
                             <form method="POST" action="{{ url_for('reject_application', app_id=app.id) }}" style="display:inline">
                                 <button type="submit" class="btn btn-danger">رفض</button>
                             </form>
-                            <a href="mailto:{{ app.email }}" class="btn btn-secondary">التواصل</a>
+                            <a href="mailto:{{ app.email }}" class="btn btn-secondary">بريد</a>
                         </div>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('messages_open_application', application_id=app.id) }}" class="btn btn-primary btn-sm">محادثة</a>
                     </td>
                 </tr>
                 {% endfor %}
@@ -141,6 +149,7 @@
                     <th>البريد</th>
                     <th>الجوال</th>
                     <th>التخصص</th>
+                    <th>محادثة المنصة</th>
                 </tr>
             </thead>
             <tbody>
@@ -150,6 +159,7 @@
                     <td>{{ app.email }}</td>
                     <td>{{ app.phone or '-' }}</td>
                     <td>{{ app.major or '-' }}</td>
+                    <td><a href="{{ url_for('messages_open_application', application_id=app.id) }}" class="btn btn-primary btn-sm">محادثة</a></td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -170,6 +180,7 @@
                     <th>الاسم</th>
                     <th>البريد</th>
                     <th>التخصص</th>
+                    <th>محادثة المنصة</th>
                 </tr>
             </thead>
             <tbody>
@@ -178,6 +189,7 @@
                     <td>{{ app.name }}</td>
                     <td>{{ app.email }}</td>
                     <td>{{ app.major or '-' }}</td>
+                    <td><a href="{{ url_for('messages_open_application', application_id=app.id) }}" class="btn btn-primary btn-sm">محادثة</a></td>
                 </tr>
                 {% endfor %}
             </tbody>

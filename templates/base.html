@@ -31,6 +31,9 @@
                     </a>
                     {% endif %}
                     <a href="{{ url_for('dashboard') }}">لوحة التحكم</a>
+                    {% if session.get('role') in ('student', 'company', 'supervisor') %}
+                    <a href="{{ url_for('messages_inbox') }}">التواصل</a>
+                    {% endif %}
                     {% if session.get('role') == 'admin' %}
                     <a href="{{ url_for('admin_supervisors') }}">المشرفون</a>
                     <a href="{{ url_for('admin_students') }}">الطلاب</a>
@@ -81,6 +84,9 @@
                         <li><a href="{{ url_for('about') }}">النبذة عن المنصة</a></li>
                         {% if session.get('user_id') %}
                         <li><a href="{{ url_for('dashboard') }}">لوحة التحكم</a></li>
+                        {% if session.get('role') in ('student', 'company', 'supervisor') %}
+                        <li><a href="{{ url_for('messages_inbox') }}">التواصل</a></li>
+                        {% endif %}
                         <li><a href="{{ url_for('profile') }}">الملف الشخصي</a></li>
                         {% else %}
                         <li><a href="{{ url_for('login') }}">تسجيل الدخول</a></li>
