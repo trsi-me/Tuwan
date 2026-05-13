@@ -55,8 +55,8 @@
                 <label for="major">التخصص *</label>
                 <select id="major" name="major" required>
                     <option value="">-- اختر التخصص --</option>
-                    {% for d in faculty_departments %}
-                    <option value="{{ d }}">{{ d }}</option>
+                    {% for m in college_majors %}
+                    <option value="{{ m }}">{{ m }}</option>
                     {% endfor %}
                 </select>
             </div>

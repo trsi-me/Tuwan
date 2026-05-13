@@ -528,12 +528,14 @@ def register_student():
             return render_template(
                 'register_student.html',
                 faculty_departments=FACULTY_DEPARTMENTS,
+                college_majors=COLLEGE_MAJORS,
             )
-        if _value_in_list(department, FACULTY_DEPARTMENTS) is None or _value_in_list(major, FACULTY_DEPARTMENTS) is None:
+        if _value_in_list(department, FACULTY_DEPARTMENTS) is None or _value_in_list(major, COLLEGE_MAJORS) is None:
             flash('يرجى اختيار القسم والتخصص من القائمة المعتمدة', 'error')
             return render_template(
                 'register_student.html',
                 faculty_departments=FACULTY_DEPARTMENTS,
+                college_majors=COLLEGE_MAJORS,
             )
         
         conn = get_db_connection()
@@ -546,6 +548,7 @@ def register_student():
             return render_template(
                 'register_student.html',
                 faculty_departments=FACULTY_DEPARTMENTS,
+                college_majors=COLLEGE_MAJORS,
             )
         
         cv_file = ''
@@ -582,7 +585,11 @@ def register_student():
         flash('تم إنشاء الحساب بنجاح. يمكنك تسجيل الدخول الآن', 'success')
         return redirect(url_for('login'))
     
-    return render_template('register_student.html', faculty_departments=FACULTY_DEPARTMENTS)
+    return render_template(
+        'register_student.html',
+        faculty_departments=FACULTY_DEPARTMENTS,
+        college_majors=COLLEGE_MAJORS,
+    )
 
 @app.route('/register/company', methods=['GET', 'POST'])
 def register_company():
@@ -868,6 +875,7 @@ def dashboard_supervisor():
         training_supervisors_other=sup_other,
         assigned_students=assigned_students,
         faculty_departments=FACULTY_DEPARTMENTS,
+        college_majors=COLLEGE_MAJORS,
         pending_apps=pending_apps,
         accepted_apps=accepted_apps,
         rejected_apps=rejected_apps)
@@ -921,7 +929,7 @@ def edit_profile():
         
         role = session.get('role')
         if role == 'student':
-            if _value_in_list(department, FACULTY_DEPARTMENTS) is None or _value_in_list(major, FACULTY_DEPARTMENTS) is None:
+            if _value_in_list(department, FACULTY_DEPARTMENTS) is None or _value_in_list(major, COLLEGE_MAJORS) is None:
                 flash('يرجى اختيار القسم والتخصص من القائمة المعتمدة', 'error')
                 return redirect(url_for('edit_profile'))
             if not all([course_name, crn, section_code]):
@@ -1257,6 +1265,7 @@ def admin_students():
         'admin_students.html',
         students=[dict(r) for r in rows],
         faculty_departments=FACULTY_DEPARTMENTS,
+        college_majors=COLLEGE_MAJORS,
         supervisors_dd=get_supervisors_for_dropdown(),
     )
 
@@ -1283,7 +1292,7 @@ def admin_student_add():
     if not all([name, email, password, course_name, crn, section_code]):
         flash('يرجى تعبئة الاسم والبريد وكلمة المرور والمقرر والرقم المرجعي والشعبة', 'error')
         return redirect(url_for('admin_students'))
-    if _value_in_list(department, FACULTY_DEPARTMENTS) is None or _value_in_list(major, FACULTY_DEPARTMENTS) is None:
+    if _value_in_list(department, FACULTY_DEPARTMENTS) is None or _value_in_list(major, COLLEGE_MAJORS) is None:
         flash('يرجى اختيار القسم والتخصص من القائمة المعتمدة', 'error')
         return redirect(url_for('admin_students'))
     conn = get_db_connection()
@@ -1400,7 +1409,7 @@ def supervisor_add_student():
     if not all([name, email, password, course_name, crn, section_code]):
         flash('يرجى تعبئة الحقول الإلزامية', 'error')
         return redirect(url_for('dashboard_supervisor'))
-    if _value_in_list(department, FACULTY_DEPARTMENTS) is None or _value_in_list(major, FACULTY_DEPARTMENTS) is None:
+    if _value_in_list(department, FACULTY_DEPARTMENTS) is None or _value_in_list(major, COLLEGE_MAJORS) is None:
         flash('يرجى اختيار القسم والتخصص من القائمة', 'error')
         return redirect(url_for('dashboard_supervisor'))
     conn = get_db_connection()
